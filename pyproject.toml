@@ -1,0 +1,27 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "blendpy"
+version = "0.0.1"
+authors = [
+  { name="Leandro Seixas", email="leandro.fisica@gmail.com" },
+]
+description = "Blendpy: Blendpy uses ab initio simulations with ASE calculators to compute alloy properties like enthalpy of mixing. It supports binary and ternary systems, including full and suballoys for compounds."
+readme = "README.md"
+requires-python = ">=3.9"
+dependencies = [
+    'numpy',
+    'ase'
+]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Operating System :: OS Independent",
+    "Topic :: Scientific/Engineering :: Chemistry",
+    "Topic :: Scientific/Engineering :: Physics"
+]
+
+[project.urls]
+"Homepage" = "https://github.com/leseixas/blendpy"
+

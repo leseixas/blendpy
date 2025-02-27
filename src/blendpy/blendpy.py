@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 # file: blendpy.py
 
-# This code is part of quasigraph.
+# This code is part of blendpy.
 # MIT License
 #
 # Copyright (c) 2025 Leandro Seixas Rocha <leandro.fisica@gmail.com> 
@@ -89,13 +89,40 @@ class Alloy(Atoms):
         return self._chemical_elements
 
 
-class Blendy(Alloy):
-    def __init__(self, method='dsi', calculator = None, optimizer = None):
-        super().__init__()
-        self.method = method
-        self.calculator = calculator
-        self.optimizer = optimizer
+class Blendpy(Alloy):
+    # def __init__(self, method='dsi', calculator = None, optimizer = None):
+    #     super().__init__()
+    #     self.method = method
+    #     self.calculator = calculator
+    #     self.optimizer = optimizer
 
+    def get_dilute_alloys(self):
+        """
+        Creates and returns a list of diluted alloy supercells.
+        
+        For each supercell, a copy is made and the last atom's chemical symbol is replaced 
+        by the last chemical symbol of the next supercell in the list (cycling around).
+        
+        Example:
+          - For two supercells: Atoms('Au8') and Atoms('Pt8'), this method creates:
+            * A copy of the first with its last atom replaced by 'Pt' -> Atoms('Au7Pt1')
+            * A copy of the second with its last atom replaced by 'Au' -> Atoms('Pt7Au1')
+        """
+        dilute_supercells = []
+        N = len(self._supercells)
+        if N < 2:
+            raise ValueError("Need at least two supercells to create dilute alloys.")
+
+        for i in range(N):
+            # Copy the current supercell
+            new_atoms = self._supercells[i].copy()
+            # Determine the replacement symbol from the next supercell (circular indexing)
+            replacement_symbol = self._supercells[(i + 1) % N].get_chemical_symbols()[-1]
+            # Replace the last atom's symbol in the copy
+            new_atoms[-1].symbol = replacement_symbol
+            dilute_supercells.append(new_atoms)
+
+        return dilute_supercells
 
     # TODO
     def get_enthalpy(self):
@@ -110,6 +137,28 @@ class Blendy(Alloy):
 if __name__ == '__main__':
     import warnings
     warnings.filterwarnings("ignore")
+
+    alloy_files = ['../../test/Au.vasp', '../../test/Pt.vasp']
+    supercell = [2,2,2]
+
+    # Create an instance of Blendpy
+    blendpy_alloy = Blendpy(alloy_files, supercell)
+    
+    # Retrieve the original supercells
+    supercells = blendpy_alloy.get_supercells()
+    for i, sc in enumerate(supercells):
+        print(f"Original supercell from file '{alloy_files[i]}':")
+        print(sc)
+        print("Chemical symbols:", sc.get_chemical_symbols())
+    
+    # Create and display the dilute alloys
+    dilute_alloys = blendpy_alloy.get_dilute_alloys()
+    for i, da in enumerate(dilute_alloys):
+        print(f"Dilute alloy supercell {i+1}:")
+        print(da)
+        print("Chemical symbols:", da.get_chemical_symbols())
+
+# GPAW calculator
 #    from gpaw import GPAW, PW, FermiDirac, Davidson, Mixer
 #    calc_gpaw = GPAW(mode=PW(400),
 #                     xc='PBE',
@@ -118,29 +167,12 @@ if __name__ == '__main__':
 #                     eigensolver=Davidson(5),
 #                     spinpol=False,
 #                     mixer=Mixer(0.05, 5, 100))
-    # from mace.calculators import mace_mp
-    # calc_mace = mace_mp(model="small",
-    #                     dispersion=False,
-    #                     default_dtype="float32",
-    #                     device='cpu')
-    alloy_files = ['../../test/Au.vasp', '../../test/Pt.vasp']
-    supercell = [2,2,2]
 
-    # Create an Alloy instance
-    alloy = Alloy(alloy_files, supercell)
-    
-    # Retrieve and print the supercells and their chemical elements
-    supercells = alloy.get_supercells()
-    elements_list = alloy.get_chemical_elements()
-    for i, (sc, elems) in enumerate(zip(supercells, elements_list)):
-        print(f"File: {alloy_files[i]}")
-        print("Supercell:")
-        print(sc)
-        print("Chemical elements:")
-        print(elems)
+# MACE calculator
+#    from mace.calculators import mace_mp
+#    calc_mace = mace_mp(model="small",
+#                        dispersion=False,
+#                        default_dtype="float32",
+#                        device='cpu')
 
-    # alloy = Alloy(alloy_basis=alloy_files, supercell=supercell)
-    # supercells = alloy.get_supercells()
-    # for i, sc in enumerate(supercells):
-    #     print(f"Supercell from file '{alloy_files[i]}':")
-    #     print(sc)
+

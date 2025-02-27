@@ -36,7 +36,7 @@ from ase.optimize import BFGS, MDMin, FIRE
 from ase.filters import UnitCellFilter
 
 class Alloy(Atoms):
-    def __init__(self, alloy_basis=[], supercell=[1,1,1], suballoy = False):
+    def __init__(self, alloy_basis=[], supercell=[1,1,1], sublattice_alloy = None):
         """
         Initializes the Alloy object.
         
@@ -44,12 +44,14 @@ class Alloy(Atoms):
             alloy_basis (list): A list of filenames (e.g., POSCAR, extxyz, or CIF).
             supercell (list): A list representing the supercell dimensions, e.g., [3, 3, 3].
         """
-        super().__init__()
+        super().__init__(symbols=[], positions=[]) # super().__init__()
         self.alloy_basis = alloy_basis
         self.supercell = supercell
-        self._supercells = []  # Internal variable to store the supercell Atoms objects
+        self._supercells = []         # To store the supercell Atoms objects
+        self._chemical_elements = []  # To store the unique chemical elements for each file
         self._create_supercells()
-        self.suballoy = suballoy
+        self._store_chemical_elements()
+        self.sublattice_alloy = sublattice_alloy
 
     def _create_supercells(self):
         """
@@ -63,23 +65,32 @@ class Alloy(Atoms):
             # Create the supercell using the repeat method
             supercell_atoms = atoms.repeat(self.supercell)
             self._supercells.append(supercell_atoms)
-    
+
+    def _store_chemical_elements(self):
+        """
+        For each supercell, retrieve the chemical symbols using the 
+        inherited get_chemical_symbols method, convert them to a set 
+        to list unique elements, and store them in _chemical_elements.
+        """
+        for atoms in self._supercells:
+            elements = atoms.get_chemical_symbols()
+            self._chemical_elements.append(elements)
+
     def get_supercells(self):
         """
         Returns the list of supercell ASE Atoms objects.
         """
         return self._supercells
 
-    # def get_alloy_basis(self):
-    #     atoms_alloy_basis = []
-    #     for alloy in self.alloy_basis: 
-    #         atoms = read(alloy)
-    #         atoms_alloy_basis.append(atoms)
-    #     return atoms_alloy_basis
+    def get_chemical_elements(self):
+        """
+        Returns the list of unique chemical elements (as sets) for each file.
+        """
+        return self._chemical_elements
 
 
 class Blendy(Alloy):
-    def __init__(self,  method='dsi', calculator = None, optimizer = None):
+    def __init__(self, method='dsi', calculator = None, optimizer = None):
         super().__init__()
         self.method = method
         self.calculator = calculator
@@ -115,8 +126,21 @@ if __name__ == '__main__':
     alloy_files = ['../../test/Au.vasp', '../../test/Pt.vasp']
     supercell = [2,2,2]
 
-    alloy = Alloy(alloy_basis=alloy_files, supercell=supercell)
+    # Create an Alloy instance
+    alloy = Alloy(alloy_files, supercell)
+    
+    # Retrieve and print the supercells and their chemical elements
     supercells = alloy.get_supercells()
-    for i, sc in enumerate(supercells):
-        print(f"Supercell from file '{alloy_files[i]}':")
+    elements_list = alloy.get_chemical_elements()
+    for i, (sc, elems) in enumerate(zip(supercells, elements_list)):
+        print(f"File: {alloy_files[i]}")
+        print("Supercell:")
         print(sc)
+        print("Chemical elements:")
+        print(elems)
+
+    # alloy = Alloy(alloy_basis=alloy_files, supercell=supercell)
+    # supercells = alloy.get_supercells()
+    # for i, sc in enumerate(supercells):
+    #     print(f"Supercell from file '{alloy_files[i]}':")
+    #     print(sc)

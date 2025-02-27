@@ -17,6 +17,7 @@ class Blendpy(Atoms):
     self.optimizer = optimizer
     self.supercell = supercell
     self.suballoy = suballoy
+#    self.dsi = 
 
 
 if __name__ == '__main__':

@@ -90,23 +90,25 @@ class Alloy(Atoms):
 
 
 class Blendpy(Alloy):
-    def __init__(self, alloy_basis, supercell):
+    def __init__(self, alloy_basis, supercell, calculator=None):
         """
         Initializes the Blendpy object.
-        In addition to the Alloy initialization, it computes the dilute alloys.
         
         Parameters:
             alloy_basis (list): List of filenames (e.g., POSCAR, extxyz, or CIF).
             supercell (list): Supercell dimensions, e.g., [3, 3, 3].
+            calculator (optional): A calculator instance to attach to all Atoms objects.
         """
         super().__init__(alloy_basis, supercell)
+        self.supercells = self.get_supercells()
         self.dilute_alloys = self._create_dilute_alloys()
 
-    # def __init__(self, method='dsi', calculator = None, optimizer = None):
-    #     super().__init__()
-    #     self.method = method
-    #     self.calculator = calculator
-    #     self.optimizer = optimizer
+        # If a calculator is provided, attach it to each Atoms object.
+        if calculator is not None:
+            for atoms in self.supercells:
+                atoms.calc = calculator
+            for atoms in self.dilute_alloys:
+                atoms.calc = calculator
 
     def _create_dilute_alloys(self):
         """
@@ -140,11 +142,11 @@ class Blendpy(Alloy):
         return dilute_supercells
 
     # TODO
-    def get_enthalpy(self):
+    def get_enthalpy(self, method='dsi'):
         pass
 
     # TODO
-    def get_entropy(self):
+    def get_entropy(self, method='dsi'):
         pass
 
 
@@ -153,30 +155,34 @@ if __name__ == '__main__':
     import warnings
     warnings.filterwarnings("ignore")
 
-    # alloy_files = ['../../test/Au.vasp', '../../test/Pt.vasp']
-    # supercell = [2,2,2]
+    # MACE calculator
+    from mace.calculators import mace_mp
+    calc_mace = mace_mp(model="small",
+                        dispersion=False,
+                        default_dtype="float32",
+                        device='cpu')
 
     # Example for binary alloys:
     print("Binary Alloy Example:")
     alloy_files_binary = ['../../test/Au.vasp', '../../test/Pt.vasp']
     supercell = [2, 2, 2]  # This will result in supercells with 8 atoms each.
-    
-    blendpy_binary = Blendpy(alloy_files_binary, supercell)
+
+    blendpy_binary = Blendpy(alloy_files_binary, supercell, calculator=calc_mace)
     
     print("Original supercells:")
-    for i, sc in enumerate(blendpy_binary.get_supercells()):
+    for i, sc in enumerate(blendpy_binary.supercells):
         print(f"File: {alloy_files_binary[i]} -> {sc}")
     print("\nDilute alloys:")
     for da in blendpy_binary.dilute_alloys:
         print(da)
     
-    # Example for ternary alloys:
+    # For a ternary alloy example:
     print("\nTernary Alloy Example:")
     alloy_files_ternary = ['../../test/Au.vasp', '../../test/Ag.vasp', '../../test/Pt.vasp']
-    blendpy_ternary = Blendpy(alloy_files_ternary, supercell)
+    blendpy_ternary = Blendpy(alloy_files_ternary, supercell, calculator=calc_mace)
     
     print("Original supercells:")
-    for i, sc in enumerate(blendpy_ternary.get_supercells()):
+    for i, sc in enumerate(blendpy_ternary.supercells):
         print(f"File: {alloy_files_ternary[i]} -> {sc}")
     print("\nDilute alloys:")
     for da in blendpy_ternary.dilute_alloys:
@@ -188,16 +194,11 @@ if __name__ == '__main__':
 #    calc_gpaw = GPAW(mode=PW(400),
 #                     xc='PBE',
 #                     kpts=(7,7,7),
-#                     occupations=FermiDirac(5),
+#                     occupations=FermiDirac(0.1),
 #                     eigensolver=Davidson(5),
 #                     spinpol=False,
 #                     mixer=Mixer(0.05, 5, 100))
 
-# MACE calculator
-#    from mace.calculators import mace_mp
-#    calc_mace = mace_mp(model="small",
-#                        dispersion=False,
-#                        default_dtype="float32",
-#                        device='cpu')
+
 
 

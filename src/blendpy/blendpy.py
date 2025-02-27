@@ -32,7 +32,7 @@ Module blendpy
 import numpy as np
 from ase.io import read, write
 from ase import Atoms
-from ase.optimize import BFGS, MDMin, FIRE
+from ase.optimize import BFGS, BFGSLineSearch, CellAwareBFGS, MDMin, FIRE, FIRE2, GPMin, LBFGS, LBFGSLineSearch, ODE12r, GoodOldQuasiNewton
 from ase.filters import UnitCellFilter
 
 class Alloy(Atoms):
@@ -127,19 +127,43 @@ class Blendpy(Alloy):
         if n < 2:
             raise ValueError("Need at least two supercells to create dilute alloys.")
         
+        dopant = [atoms.get_chemical_symbols()[-1] for atoms in self._supercells]
+
         # Iterate over all pairs (i, j) with i != j
         for i in range(n):
             for j in range(n):
                 if i != j:
-                    # Copy the base supercell from index i
+                    # Copy the base supercell from index i.
                     new_atoms = self._supercells[i].copy()
-                    # Get the replacement symbol from the last atom of supercell j
-                    replacement_symbol = self._supercells[j].get_chemical_symbols()[-1]
-                    # Replace the last atom's symbol in the copy
-                    new_atoms[-1].symbol = replacement_symbol
+                    # Replace the last atom's symbol with the last symbol from supercell j.
+                    new_atoms[-1].symbol = dopant[j]
                     dilute_supercells.append(new_atoms)
         
         return dilute_supercells
+
+    # TODO
+    def optimize(self, method=BFGSLineSearch, fmax=0.01, steps=500, mask = [1,1,1,1,1,1]):
+        """
+        Optimizes all Atoms objects in both supercells and dilute_alloys lists.
+        
+        For each Atoms object, a UnitCellFilter is applied and a BFGS optimizer is created.
+        The optimizer is then run with the provided fmax and steps.
+        
+        Parameters:
+            fmax (float): The maximum force criteria.
+            steps (int): The maximum number of optimization steps.
+        """
+        # Optimize original supercells.
+        for atoms in self.supercells:
+            ucf = UnitCellFilter(atoms, mask=mask)
+            optimizer = method(ucf)
+            optimizer.run(fmax=fmax, steps=steps)
+
+        # Optimize dilute alloy structures.
+        for atoms in self.dilute_alloys:
+            ucf = UnitCellFilter(atoms, mask=mask)
+            optimizer = method(ucf)
+            optimizer.run(fmax=fmax, steps=steps)
 
     # TODO
     def get_enthalpy(self, method='dsi'):
@@ -164,29 +188,25 @@ if __name__ == '__main__':
 
     # Example for binary alloys:
     print("Binary Alloy Example:")
-    alloy_files_binary = ['../../test/Au.vasp', '../../test/Pt.vasp']
+    alloy_files = ['../../test/Au.vasp', '../../test/Pt.vasp']
     supercell = [2, 2, 2]  # This will result in supercells with 8 atoms each.
 
-    blendpy_binary = Blendpy(alloy_files_binary, supercell, calculator=calc_mace)
+    blendpy = Blendpy(alloy_files, supercell, calculator=calc_mace)
     
-    print("Original supercells:")
-    for i, sc in enumerate(blendpy_binary.supercells):
-        print(f"File: {alloy_files_binary[i]} -> {sc}")
-    print("\nDilute alloys:")
-    for da in blendpy_binary.dilute_alloys:
-        print(da)
+    print("Before optimization:")
+    for i, sc in enumerate(blendpy.supercells):
+        print(f"Supercell from {alloy_files[i]}: {sc.get_cell_lengths_and_angles()}")
+    for da in blendpy.dilute_alloys:
+        print("Dilute alloy:", da.get_cell_lengths_and_angles())
     
-    # For a ternary alloy example:
-    print("\nTernary Alloy Example:")
-    alloy_files_ternary = ['../../test/Au.vasp', '../../test/Ag.vasp', '../../test/Pt.vasp']
-    blendpy_ternary = Blendpy(alloy_files_ternary, supercell, calculator=calc_mace)
+    # Optimize all structures.
+    blendpy.optimize(method=BFGSLineSearch, fmax=0.01, steps=500)
     
-    print("Original supercells:")
-    for i, sc in enumerate(blendpy_ternary.supercells):
-        print(f"File: {alloy_files_ternary[i]} -> {sc}")
-    print("\nDilute alloys:")
-    for da in blendpy_ternary.dilute_alloys:
-        print(da)
+    print("\nAfter optimization:")
+    for i, sc in enumerate(blendpy.supercells):
+        print(f"Optimized supercell from {alloy_files[i]}: {sc.get_cell_lengths_and_angles()}")
+    for da in blendpy.dilute_alloys:
+        print("Optimized dilute alloy:", da.get_cell_lengths_and_angles())
 
 
 # GPAW calculator

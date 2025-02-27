@@ -90,38 +90,53 @@ class Alloy(Atoms):
 
 
 class Blendpy(Alloy):
+    def __init__(self, alloy_basis, supercell):
+        """
+        Initializes the Blendpy object.
+        In addition to the Alloy initialization, it computes the dilute alloys.
+        
+        Parameters:
+            alloy_basis (list): List of filenames (e.g., POSCAR, extxyz, or CIF).
+            supercell (list): Supercell dimensions, e.g., [3, 3, 3].
+        """
+        super().__init__(alloy_basis, supercell)
+        self.dilute_alloys = self._create_dilute_alloys()
+
     # def __init__(self, method='dsi', calculator = None, optimizer = None):
     #     super().__init__()
     #     self.method = method
     #     self.calculator = calculator
     #     self.optimizer = optimizer
 
-    def get_dilute_alloys(self):
+    def _create_dilute_alloys(self):
         """
         Creates and returns a list of diluted alloy supercells.
         
-        For each supercell, a copy is made and the last atom's chemical symbol is replaced 
-        by the last chemical symbol of the next supercell in the list (cycling around).
+        For each supercell (base), a copy is made and its last atom's chemical symbol is replaced 
+        by the last atom's symbol from every other supercell.
         
-        Example:
-          - For two supercells: Atoms('Au8') and Atoms('Pt8'), this method creates:
-            * A copy of the first with its last atom replaced by 'Pt' -> Atoms('Au7Pt1')
-            * A copy of the second with its last atom replaced by 'Au' -> Atoms('Pt7Au1')
+        For example, with alloys_basis=['Au.cif', 'Ag.cif', 'Pt.cif'] and supercell=[2,2,2]:
+          - From Au8, two alloys are made: Au7Ag1 and Au7Pt1.
+          - From Ag8, two alloys: Ag7Au1 and Ag7Pt1.
+          - From Pt8, two alloys: Pt7Au1 and Pt7Ag1.
         """
         dilute_supercells = []
-        N = len(self._supercells)
-        if N < 2:
+        n = len(self._supercells)
+        if n < 2:
             raise ValueError("Need at least two supercells to create dilute alloys.")
-
-        for i in range(N):
-            # Copy the current supercell
-            new_atoms = self._supercells[i].copy()
-            # Determine the replacement symbol from the next supercell (circular indexing)
-            replacement_symbol = self._supercells[(i + 1) % N].get_chemical_symbols()[-1]
-            # Replace the last atom's symbol in the copy
-            new_atoms[-1].symbol = replacement_symbol
-            dilute_supercells.append(new_atoms)
-
+        
+        # Iterate over all pairs (i, j) with i != j
+        for i in range(n):
+            for j in range(n):
+                if i != j:
+                    # Copy the base supercell from index i
+                    new_atoms = self._supercells[i].copy()
+                    # Get the replacement symbol from the last atom of supercell j
+                    replacement_symbol = self._supercells[j].get_chemical_symbols()[-1]
+                    # Replace the last atom's symbol in the copy
+                    new_atoms[-1].symbol = replacement_symbol
+                    dilute_supercells.append(new_atoms)
+        
         return dilute_supercells
 
     # TODO
@@ -138,25 +153,35 @@ if __name__ == '__main__':
     import warnings
     warnings.filterwarnings("ignore")
 
-    alloy_files = ['../../test/Au.vasp', '../../test/Pt.vasp']
-    supercell = [2,2,2]
+    # alloy_files = ['../../test/Au.vasp', '../../test/Pt.vasp']
+    # supercell = [2,2,2]
 
-    # Create an instance of Blendpy
-    blendpy_alloy = Blendpy(alloy_files, supercell)
+    # Example for binary alloys:
+    print("Binary Alloy Example:")
+    alloy_files_binary = ['../../test/Au.vasp', '../../test/Pt.vasp']
+    supercell = [2, 2, 2]  # This will result in supercells with 8 atoms each.
     
-    # Retrieve the original supercells
-    supercells = blendpy_alloy.get_supercells()
-    for i, sc in enumerate(supercells):
-        print(f"Original supercell from file '{alloy_files[i]}':")
-        print(sc)
-        print("Chemical symbols:", sc.get_chemical_symbols())
+    blendpy_binary = Blendpy(alloy_files_binary, supercell)
     
-    # Create and display the dilute alloys
-    dilute_alloys = blendpy_alloy.get_dilute_alloys()
-    for i, da in enumerate(dilute_alloys):
-        print(f"Dilute alloy supercell {i+1}:")
+    print("Original supercells:")
+    for i, sc in enumerate(blendpy_binary.get_supercells()):
+        print(f"File: {alloy_files_binary[i]} -> {sc}")
+    print("\nDilute alloys:")
+    for da in blendpy_binary.dilute_alloys:
         print(da)
-        print("Chemical symbols:", da.get_chemical_symbols())
+    
+    # Example for ternary alloys:
+    print("\nTernary Alloy Example:")
+    alloy_files_ternary = ['../../test/Au.vasp', '../../test/Ag.vasp', '../../test/Pt.vasp']
+    blendpy_ternary = Blendpy(alloy_files_ternary, supercell)
+    
+    print("Original supercells:")
+    for i, sc in enumerate(blendpy_ternary.get_supercells()):
+        print(f"File: {alloy_files_ternary[i]} -> {sc}")
+    print("\nDilute alloys:")
+    for da in blendpy_ternary.dilute_alloys:
+        print(da)
+
 
 # GPAW calculator
 #    from gpaw import GPAW, PW, FermiDirac, Davidson, Mixer

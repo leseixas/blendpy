@@ -17,8 +17,6 @@ class Blendpy(Atoms):
     self.optimizer = optimizer
     self.supercell = supercell
     self.suballoy = suballoy
-    self.atoms_alloy_basis = None # self.get_alloy_basis()
-    self.atoms_supercells = None # self.get_supercells()
 
   def get_alloy_basis(self):
     atoms_alloy_basis = []
@@ -33,6 +31,16 @@ class Blendpy(Atoms):
       alloy_sc = alloy.repeat(self.supercell) 
       atoms_supercells.append(alloy_sc)
     return atoms_supercells
+
+  # TODO
+  def get_enthalpy(self):
+    pass
+
+  # TODO
+  def get_entropy(self):
+    pass
+
+
 
 
 if __name__ == '__main__':

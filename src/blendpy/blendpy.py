@@ -37,24 +37,46 @@ from ase.filters import UnitCellFilter
 
 class Alloy(Atoms):
     def __init__(self, alloy_basis=[], supercell=[1,1,1], suballoy = False):
+        """
+        Initializes the Alloy object.
+        
+        Parameters:
+            alloy_basis (list): A list of filenames (e.g., POSCAR, extxyz, or CIF).
+            supercell (list): A list representing the supercell dimensions, e.g., [3, 3, 3].
+        """
         super().__init__()
-        self.alloy_basis: list = alloy_basis
+        self.alloy_basis = alloy_basis
         self.supercell = supercell
+        self._supercells = []  # Internal variable to store the supercell Atoms objects
+        self._create_supercells()
         self.suballoy = suballoy
 
-    def get_alloy_basis(self):
-        atoms_alloy_basis = []
-        for alloy in self.alloy_basis: 
-            atoms = read(alloy)
-            atoms_alloy_basis.append(atoms)
-        return atoms_alloy_basis
-
+    def _create_supercells(self):
+        """
+        Reads each file in alloy_basis as an ASE Atoms object,
+        applies the repeat (supercell) transformation,
+        and stores the resulting supercell.
+        """
+        for filename in self.alloy_basis:
+            # Read the structure from file (ASE infers file type automatically)
+            atoms = read(filename)
+            # Create the supercell using the repeat method
+            supercell_atoms = atoms.repeat(self.supercell)
+            self._supercells.append(supercell_atoms)
+    
     def get_supercells(self):
-        atoms_supercells = []
-        for alloy in self.atoms_alloy_basis:
-            alloy_sc = alloy.repeat(self.supercell) 
-            atoms_supercells.append(alloy_sc)
-        return atoms_supercells
+        """
+        Returns the list of supercell ASE Atoms objects.
+        """
+        return self._supercells
+
+    # def get_alloy_basis(self):
+    #     atoms_alloy_basis = []
+    #     for alloy in self.alloy_basis: 
+    #         atoms = read(alloy)
+    #         atoms_alloy_basis.append(atoms)
+    #     return atoms_alloy_basis
+
 
 class Blendy(Alloy):
     def __init__(self,  method='dsi', calculator = None, optimizer = None):
@@ -73,7 +95,7 @@ class Blendy(Alloy):
         pass
 
 
-
+# Example usage:
 if __name__ == '__main__':
     import warnings
     warnings.filterwarnings("ignore")
@@ -85,13 +107,16 @@ if __name__ == '__main__':
 #                     eigensolver=Davidson(5),
 #                     spinpol=False,
 #                     mixer=Mixer(0.05, 5, 100))
+    # from mace.calculators import mace_mp
+    # calc_mace = mace_mp(model="small",
+    #                     dispersion=False,
+    #                     default_dtype="float32",
+    #                     device='cpu')
+    alloy_files = ['../../test/Au.vasp', '../../test/Pt.vasp']
+    supercell = [2,2,2]
 
-    from mace.calculators import mace_mp
-    calc_mace = mace_mp(model="small",
-                        dispersion=False,
-                        default_dtype="float32",
-                        device='cpu')
-
-    alloy = Alloy(alloy_basis=['../../test/Au.vasp', '../../Pt.vasp'],
-                    calculator = calc_mace,
-                    supercell=[3,3,3])
+    alloy = Alloy(alloy_basis=alloy_files, supercell=supercell)
+    supercells = alloy.get_supercells()
+    for i, sc in enumerate(supercells):
+        print(f"Supercell from file '{alloy_files[i]}':")
+        print(sc)

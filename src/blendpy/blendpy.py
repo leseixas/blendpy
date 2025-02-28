@@ -29,7 +29,7 @@
 Module blendpy
 '''
 
-version = '0.0.19'
+version = '0.0.21'
 
 import numpy as np
 from ase.io import read, write
@@ -104,6 +104,7 @@ class Blendpy(Alloy):
 
         super().__init__(alloy_basis, supercell)
         self.dilute_alloys = self._create_dilute_alloys()
+        self.n_components = len(alloy_basis)
 
         self.banner()
 
@@ -177,6 +178,14 @@ class Blendpy(Alloy):
                 energy = atoms.get_potential_energy()
                 atoms.info['energy'] = energy
 
+
+    def get_energy_matrix(self):
+        n  = self.n_components
+        energy_matrix = np.zeros((n,n), dtype=float)
+        for i, row in enumerate(self.dilute_alloys):
+            for j, atoms in enumerate(row):
+                energy_matrix[i,j] = atoms.info['energy']
+        return energy_matrix
 
     # TODO
     def get_diluting_parameters(self):

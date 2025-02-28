@@ -29,7 +29,7 @@
 Module blendpy
 '''
 
-version = '25.2.1'
+version = '25.2.2'
 
 import numpy as np
 import pandas as pd

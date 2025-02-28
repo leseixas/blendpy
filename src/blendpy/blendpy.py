@@ -99,20 +99,25 @@ class Blendpy(Alloy):
             supercell (list): Supercell dimensions, e.g., [3, 3, 3].
             calculator (optional): A calculator instance to attach to all Atoms objects.
         """
+        # print("                                                ")
+        # print("   _      _                   _                 ")
+        # print("  | |__  | |  ___  _ __    __| | _ __   _   _   ")
+        # print("  | '_ \ | | / _ \| '_ \  / _` || '_ \ | | | |  ")
+        # print("  | |_) || ||  __/| | | || (_| || |_) || |_| |  ")
+        # print("  |_.__/ |_| \___||_| |_| \__,_|| .__/  \__, |  ")
+        # print("                                |_|     |___/   ")
+        # print("                                                ")
+
         super().__init__(alloy_basis, supercell)
-        self.supercells = self.get_supercells()
         self.dilute_alloys = self._create_dilute_alloys()
 
         # If a calculator is provided, attach it to each Atoms object.
         if calculator is not None:
-            for atoms in self.supercells:
-                atoms.calc = calculator
-                energy = atoms.get_potential_energy()
-                atoms.info['energy'] = energy
-            for atoms in self.dilute_alloys:
-                atoms.calc = calculator
-                energy = atoms.get_potential_energy()
-                atoms.info['energy'] = energy
+            for row in self.dilute_alloys:
+                for atoms in row:
+                    atoms.calc = calculator
+                    energy = atoms.get_potential_energy()
+                    atoms.info['energy'] = energy
 
 
     def _create_dilute_alloys(self):
@@ -127,53 +132,31 @@ class Blendpy(Alloy):
           - From Ag8, two alloys: Ag7Au1 and Ag7Pt1.
           - From Pt8, two alloys: Pt7Au1 and Pt7Ag1.
         """
-        dilute_supercells = []
+
         n = len(self._supercells)
         if n < 2:
             raise ValueError("Need at least two supercells to create dilute alloys.")
         
         dopant = [atoms.get_chemical_symbols()[-1] for atoms in self._supercells]
 
-        # Iterate over all pairs (i, j) with i != j
+        # Iterate over all pairs (i, j)
+        dilute_supercells_matrix = []
         for i in range(n):
+            dilute_matrix_row = []
             for j in range(n):
-                if i != j:
-                    # Copy the base supercell from index i.
-                    new_atoms = self._supercells[i].copy()
-                    # Replace the last atom's symbol with the last symbol from supercell j.
-                    new_atoms[-1].symbol = dopant[j]
-                    dilute_supercells.append(new_atoms)
+                # Copy the base supercell from index i.
+                new_atoms = self._supercells[i].copy()
+                # Replace the last atom's symbol with the last symbol from supercell j.
+                new_atoms[-1].symbol = dopant[j]
+                dilute_matrix_row.append(new_atoms)
+            dilute_supercells_matrix.append(dilute_matrix_row)
         
-        return dilute_supercells
-    
+        return dilute_supercells_matrix
 
-    def get_energies(self):
+
+    def optimize(self, method=BFGSLineSearch, fmax=0.01, steps=500, logfile='optimization.log', mask = [1,1,1,1,1,1]):
         """
-        Calculates the total energies for each Atoms object in both the supercells
-        and dilute_alloys lists. For each structure, the potential energy is stored
-        in the Atoms object's info dictionary with key 'energy'.
-
-        Returns:
-            list: A list containing two lists: [energy_supercells, energy_dilute_alloys].
-        """
-        energy_supercells = []
-        for atoms in self.supercells:
-            energy = atoms.get_potential_energy()
-            atoms.info['energy'] = energy
-            energy_supercells.append(energy)
-
-        energy_dilute_alloys = []
-        for atoms in self.dilute_alloys:
-            energy = atoms.get_potential_energy()
-            atoms.info['energy'] = energy
-            energy_dilute_alloys.append(energy)
-
-        return [energy_supercells, energy_dilute_alloys]
-
-
-    def optimize(self, method=BFGSLineSearch, fmax=0.01, steps=500, mask = [1,1,1,1,1,1]):
-        """
-        Optimizes all Atoms objects in both supercells and dilute_alloys lists.
+        Optimizes all Atoms objects in dilute_alloys matrix.
         
         For each Atoms object, a UnitCellFilter is applied and a BFGS optimizer is created.
         The optimizer is then run with the provided fmax and steps.
@@ -182,33 +165,26 @@ class Blendpy(Alloy):
             fmax (float): The maximum force criteria.
             steps (int): The maximum number of optimization steps.
         """
-        # Optimize original supercells.
-        for atoms in self.supercells:
-            ucf = UnitCellFilter(atoms, mask=mask)
-            optimizer = method(ucf)
-            optimizer.run(fmax=fmax, steps=steps)
-            energy = atoms.get_potential_energy()
-            atoms.info['energy'] = energy
 
-        # Optimize dilute alloy structures.
-        for atoms in self.dilute_alloys:
-            ucf = UnitCellFilter(atoms, mask=mask)
-            optimizer = method(ucf)
-            optimizer.run(fmax=fmax, steps=steps)
-            energy = atoms.get_potential_energy()
-            atoms.info['energy'] = energy
+        for row in self.dilute_alloys:
+            for atoms in row:
+                ucf = UnitCellFilter(atoms, mask=mask)
+                optimizer = method(ucf, logfile=logfile)
+                optimizer.run(fmax=fmax, steps=steps)
+                energy = atoms.get_potential_energy()
+                atoms.info['energy'] = energy
 
 
     # TODO
     def get_diluting_parameters(self):
-        number_atoms = [len(atoms) for atoms in self.supercells]
-        if len(set(number_atoms)) != 1:
-            raise ValueError(f"Not all supercells have the same number of atoms: {number_atoms}.")
-        
-        dilution = 1/number_atoms[0]
+        number_atoms_list = [len(atoms) for atoms in self.supercells]
+        if len(set(number_atoms_list)) != 1:
+            raise ValueError(f"Not all supercells have the same number of atoms: {number_atoms_list}.")
+        N = number_atoms_list[0]
+        x = 1/N
         # m12 = 
         # diluting_matrix = 
-        return dilution
+        return x
 
 
     # TODO
@@ -234,21 +210,13 @@ if __name__ == '__main__':
     supercell = [2, 2, 2]  # This will result in supercells with 8 atoms each.
 
     blendpy = Blendpy(alloy_files, supercell, calculator=calc_mace)
-    
-    print("Before optimization:")
-    for i, sc in enumerate(blendpy.supercells):
-        print(f"Supercell from {alloy_files[i]}: {sc.info['energy']}")
-    for da in blendpy.dilute_alloys:
-        print("Dilute alloy:", da.info['energy'])
-    
+
     # Optimize all structures.
     blendpy.optimize(method=BFGSLineSearch, fmax=0.01, steps=500)
-    
-    print("\nAfter optimization:")
-    for i, sc in enumerate(blendpy.supercells):
-        print(f"Optimized supercell from {alloy_files[i]}: {sc.info['energy']}")
-    for da in blendpy.dilute_alloys:
-        print("Optimized dilute alloy:", da.info['energy'])
+
+    for row in blendpy.dilute_alloys:
+        for atoms in row:
+            print(f"{atoms.get_chemical_formula()}: ", atoms.info['energy'])
 
 
 # GPAW calculator

@@ -41,7 +41,7 @@ from ase.filters import UnitCellFilter
 
 
 class Alloy(Atoms):
-    def __init__(self, alloy_basis=[], sublattice_alloy = None):
+    def __init__(self, alloy_basis: list, sublattice_alloy = None):
         """
         Initializes the Alloy object.
         
@@ -76,7 +76,7 @@ class Alloy(Atoms):
 
 
 class DSIModel(Alloy):
-    def __init__(self, alloy_basis, supercell=[1,1,1], calculator=None):
+    def __init__(self, alloy_basis: list, supercell: list = [1,1,1], calculator = None):
         """
         Initializes the Dilute Solution Interpolation (DSI) Model object.
         
@@ -161,7 +161,7 @@ class DSIModel(Alloy):
         return dilute_supercells_matrix
 
 
-    def optimize(self, method=BFGSLineSearch, fmax=0.01, steps=500, logfile='optimization.log', mask = [1,1,1,1,1,1]):
+    def optimize(self, method=BFGSLineSearch, fmax: float = 0.01, steps: int = 500, logfile: str = 'optimization.log', mask: list = [1,1,1,1,1,1]):
         """
         Atoms objects are optimized according to the specified optimization method and parameters.
         
@@ -206,14 +206,14 @@ class DSIModel(Alloy):
         return m_dsi * (96.4853321233100184) # converting value to kJ/mol
 
 
-    def get_enthalpy_of_mixing(self, A=0, B=1, npoints=21, slope=[0,0]):
+    def get_enthalpy_of_mixing(self, A: int = 0, B: int = 1, npoints: int = 21, slope: list = [0,0]):
         x = np.linspace(0,1,npoints) # molar fraction
         m_dsi = self.get_diluting_parameters()
         enthalpy = m_dsi[A,B] * x * (1-x)**2 + m_dsi[B,A] * x**2 * (1-x) + (1-x) * slope[0] + x * slope[1]
         return enthalpy
 
 
-    def get_configurational_entropy(self, eps=1.e-8, npoints=21):
+    def get_configurational_entropy(self, eps: float = 1.e-8, npoints: int = 21):
         R = 8.314/1000
         x = np.linspace(0,1,npoints) # molar fraction
         eps = eps
@@ -221,7 +221,7 @@ class DSIModel(Alloy):
         return entropy
 
 
-    def get_spinodal_decomposition(self, A=0, B=1, eps=1.e-8, temperatures=np.arange(600, 2501, 5), npoints=21):
+    def get_spinodal_decomposition(self, A: int = 0, B: int = 1, eps: float = 1.e-8, temperatures = np.arange(600, 2501, 5), npoints: int = 201):
         A = A
         B = B
         eps = eps
@@ -256,13 +256,18 @@ class DSIModel(Alloy):
 
 
     # TODO
+    def get_binodal_curve(self):
+        pass
+
+
+    # TODO
     def get_phase_diagram(self):
         pass
 
 
 
 class Polymorph(Atoms):
-    def __init__(self, alpha, beta, calculator = None):
+    def __init__(self, alpha: str, beta: str, calculator = None):
         """
         Initializes the Polymorph object.
         """
@@ -286,7 +291,7 @@ class Polymorph(Atoms):
         return energies
 
 
-    def optimize(self, method=BFGSLineSearch, fmax=0.01, steps=500, logfile='optimization.log', mask = [1,1,1,1,1,1]):
+    def optimize(self, method=BFGSLineSearch, fmax: float = 0.01, steps: int = 500, logfile: str = 'optimization.log', mask: list = [1,1,1,1,1,1]):
         """
         Atoms objects are optimized according to the specified optimization method and parameters.
         
@@ -319,6 +324,19 @@ class Polymorph(Atoms):
         return delta_energy * (96.4853321233100184) # converting value to kJ/mol
 
 
+
+class BlendpyIO(Atoms):
+    def get_energies(self):
+        pass
+
+    def get_dsimodel(self):
+        pass
+
+    def plot(self):
+        pass
+
+
+
 # Example usage:
 if __name__ == '__main__':
     import warnings
@@ -349,9 +367,12 @@ if __name__ == '__main__':
 
     # Optimize all structures.
     blendpy.optimize(method=BFGSLineSearch, fmax=0.01, steps=500)
-    
+
     enthalpy = blendpy.get_enthalpy_of_mixing(A=0, B=1, npoints=21)
     print(enthalpy)
+
+    # df_spinodal = blendpy.get_spinodal_decomposition(temperatures = np.arange(500, 3000, 2), npoints = 501)
+    # df_spinodal.to_csv("spinodal.csv", index=False, header=True, sep=',')
 
     # blendpy = Polymorph(alpha='../../test/Pt_fcc.vasp', beta='../../test/Pt_bcc.vasp', calculator = calc_mace)
     # blendpy.optimize()

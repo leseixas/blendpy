@@ -29,10 +29,10 @@
 Module blendpy
 '''
 
-version = '25.2.5'
+version = '25.2.6'
 
 import numpy as np
-# import pandas as pd
+import pandas as pd
 from ase.io import read
 from ase import Atoms
 from ase.optimize import BFGS, BFGSLineSearch, CellAwareBFGS, MDMin, FIRE, FIRE2, GPMin, LBFGS, LBFGSLineSearch, ODE12r, GoodOldQuasiNewton
@@ -221,9 +221,38 @@ class DSIModel(Alloy):
         return entropy
 
 
-    # TODO
-    def get_spinodal_decomposition(self):
-        pass
+    def get_spinodal_decomposition(self, A=0, B=1, eps=1.e-8, temperatures=np.arange(600, 2501, 5), npoints=21):
+        A = A
+        B = B
+        eps = eps
+        temperatures = temperatures
+        npoints = npoints
+        x = np.linspace(0,1,npoints) # molar fraction
+
+        enthalpy = self.get_enthalpy_of_mixing(A, B, npoints)
+        entropy = self.get_configurational_entropy(eps, npoints)
+
+        spinodal = []
+        for t in temperatures:
+            gibbs = enthalpy - t * entropy
+            dx = 1/npoints
+            diff_gibbs = np.gradient(gibbs, dx)
+            diff2_gibbs = np.gradient(diff_gibbs, dx)
+            idx = np.argwhere(np.diff(np.sign(diff2_gibbs - np.zeros(npoints)))).flatten()
+            data = [t, x[idx]]
+            flattened_array = np.concatenate([np.atleast_1d(item) for item in data])
+            spinodal.append(flattened_array)
+        
+        df0 = pd.DataFrame(spinodal)
+        df1 = df0[[1,0]]
+        df1.columns = ["x","t"]
+        df2 = df0[[2,0]]
+        df2.columns = ["x","t"]
+        reversed_df2 = df2.iloc[::-1].reset_index(drop=True)
+        df_result = pd.concat([df1, reversed_df2], axis=0, ignore_index=True)
+        df_spinodal = df_result.dropna()
+
+        return df_spinodal
 
 
     # TODO

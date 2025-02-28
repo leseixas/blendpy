@@ -16,7 +16,14 @@ $ pip install blendpy
 ## Getting started
 
 ```python
-from blendpy import DSIModel
+from ase.io import write
+from ase.build import bulk
+from ase.optimize import BFGSLineSearch
+from ase.filters import UnitCellFilter
+
+# Create Au and Pt Atoms object
+gold = bulk("Au", cubic=True)
+platinum = bulk("Pt", cubic=True)
 
 # Create a calculator object to optimize structures.
 from mace.calculators import mace_mp
@@ -24,6 +31,24 @@ calc_mace = mace_mp(model="small",
                     dispersion=False,
                     default_dtype="float32",
                     device='cpu')
+
+gold.calc = calc_mace
+platinum.calc = calc_mace
+
+# Optimize Au and Pt unit cell.
+optimizer_gold = BFGSLineSearch(UnitCellFilter(gold))
+optimizer_platinum = BFGSLineSearch(UnitCellFilter(platinum))
+optimizer_gold.run(fmax=0.01)
+optimizer_platinum.run(fmax=0.01)
+
+# Save the optimized unit cells for Au and Pt.
+write("Au.cif", gold)
+write("Pt.cif", platinum)
+
+```
+
+```python
+from blendpy import DSIModel
 
 # Create a DSIModel object.
 blendpy = DSIModel(alloy_components = ['Au.cif', 'Pt.cif'],

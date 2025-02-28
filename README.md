@@ -64,27 +64,33 @@ write("Pt.cif", platinum)
 
 ```
 
+Now, import the `DSIModel` from blendpy and create a `DSIModel` object using the optimized structures:
 ```python
 from blendpy import DSIModel
 
-# Create a DSIModel object.
+# Create a DSIModel object
 blendpy = DSIModel(alloy_components = ['Au.cif', 'Pt.cif'],
                    supercell = [2,2,2],
                    calculator=calc_mace)
+```
 
-# Optimize the structures.
+Optimize the structures within the `DSIModel` object:
+```python
+# Optimize the structures
 blendpy.optimize(method=BFGSLineSearch, fmax=0.01)
+```
 
-# Calculate the enthalpy of mixing for the AuPt alloy.
+Calculate the enthalpy of mixing for the AuPt alloy:
+```python
+# Calculate the enthalpy of mixing
 enthalpy_of_mixing = blendpy.get_enthalpy_of_mixing(npoints=101)
 ```
 
-### Plotting the enthalpy of mixing
-
+Plottingthe enthalpy of mixing
 ```python
 import matplotlib.pyplot as plt
 
-TODO
+# TODO: Add code to plot the enthalpy of mixing
 
 ```
 
@@ -92,7 +98,7 @@ TODO
 
 ```python
 
-TODO
+# TODO: Add code to calculate and plot the spinodal decomposition curve
 
 ```
 
@@ -100,7 +106,7 @@ TODO
 
 ```python
 
-TODO
+# TODO: Add code to calculate and plot the phase diagram
 
 ```
 

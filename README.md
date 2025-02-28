@@ -88,11 +88,34 @@ enthalpy_of_mixing = blendpy.get_enthalpy_of_mixing(npoints=101)
 
 Plottingthe enthalpy of mixing
 ```python
+import numpy as np
 import matplotlib.pyplot as plt
 
-# TODO: Add code to plot the enthalpy of mixing
+fig, ax = plt.subplots(1,1, figsize=(5,5))
 
+x = np.linspace(0, 1, 101)
+ax.set_xlabel("$x$", fontsize=20)
+ax.set_ylabel("$\Delta H_{mix}$ (kJ/mol)", fontsize=20)
+ax.set_xlim(0,1)
+ax.set_ylim(-7,7)
+ax.set_xticks(np.linspace(0,1,6))
+ax.set_yticks(np.arange(-6,7,2))
+ax.plot(x, enthalpy_of_mixing, color='#d53e4f', linewidth=3, label="Au$_{1-x}$Pt$_{x}$")
+ax.legend(loc="best", fontsize=20)
+
+ax.tick_params(direction='in', axis='both', which='major', labelsize=20, width=3, length=8)
+ax.set_box_aspect(1)
+for spine in ax.spines.values():
+    spine.set_linewidth(3)
+
+plt.tight_layout()
+plt.show()
 ```
+
+<p align="center">
+<img src="https://raw.githubusercontent.com/leseixas/blendpy/refs/heads/main/figs/aupt_enthalpy_of_mixing.png" style="height: 150px"></p>
+
+<p align="center"><a name="fig1">Figure 1</a> - Enthalpy of mixing for the alloy</p>
 
 ## Spinodal decomposition curve
 

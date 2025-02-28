@@ -187,17 +187,19 @@ class Blendpy(Alloy):
                 energy_matrix[i,j] = atoms.info['energy']
         return energy_matrix
 
-    # TODO
     def get_diluting_parameters(self):
-        number_atoms_list = [len(atoms) for atoms in self.supercells]
+        number_atoms_list = [ len(atoms) for row in self.dilute_alloys for atoms in row ]
         if len(set(number_atoms_list)) != 1:
             raise ValueError(f"Not all supercells have the same number of atoms: {number_atoms_list}.")
-        N = number_atoms_list[0]
-        x = 1/N
-        # m12 = 
-        # diluting_matrix = 
-        return x
+        n  = self.n_components
+        x = 1/number_atoms_list[0] # dilution parameter
 
+        m_dsi = np.zeros((n,n), dtype=float)
+        energy = self.get_energy_matrix()
+        for i, row in enumerate(self.dilute_alloys):
+            for j, atoms in enumerate(row):
+                m_dsi[i,j] = energy[i,j] - ((1-x)*energy[i,i] + x * energy[j,j])
+        return m_dsi * (96.487) # converting value to kJ/mol
 
     # TODO
     def get_enthalpy(self):
@@ -213,16 +215,26 @@ if __name__ == '__main__':
     import warnings
     warnings.filterwarnings("ignore")
 
-    # MACE calculator
+    ### MACE calculator
     from mace.calculators import mace_mp
     calc_mace = mace_mp(model="small",
                         dispersion=False,
                         default_dtype="float32",
                         device='cpu')
 
+    ### GPAW calculator
+    # from gpaw import GPAW, PW, FermiDirac, Davidson, Mixer
+    # calc_gpaw = GPAW(mode=PW(500),
+    #                  xc='PBE',
+    #                  kpts=(7,7,7),
+    #                  occupations=FermiDirac(0.1),
+    #                  eigensolver=Davidson(5),
+    #                  spinpol=False,
+    #                  mixer=Mixer(0.05, 5, 100))
+
     # Example:
     alloy_files = ['../../test/Au.vasp', '../../test/Pt.vasp']
-    supercell = [2, 2, 2]  # This will result in supercells with 8 atoms each.
+    supercell = [2,2,2]  # This will result in supercells with 8 atoms each.
 
     blendpy = Blendpy(alloy_files, supercell, calculator=calc_mace)
 
@@ -232,14 +244,8 @@ if __name__ == '__main__':
     for row in blendpy.dilute_alloys:
         for atoms in row:
             print(f"{atoms.get_chemical_formula()}: ", atoms.info['energy'])
+    
+    m_dsi = blendpy.get_diluting_parameters()
+    print(m_dsi)
 
 
-# GPAW calculator
-#    from gpaw import GPAW, PW, FermiDirac, Davidson, Mixer
-#    calc_gpaw = GPAW(mode=PW(400),
-#                     xc='PBE',
-#                     kpts=(7,7,7),
-#                     occupations=FermiDirac(0.1),
-#                     eigensolver=Davidson(5),
-#                     spinpol=False,
-#                     mixer=Mixer(0.05, 5, 100))

@@ -107,8 +107,13 @@ class Blendpy(Alloy):
         if calculator is not None:
             for atoms in self.supercells:
                 atoms.calc = calculator
+                energy = atoms.get_potential_energy()
+                atoms.info['energy'] = energy
             for atoms in self.dilute_alloys:
                 atoms.calc = calculator
+                energy = atoms.get_potential_energy()
+                atoms.info['energy'] = energy
+
 
     def _create_dilute_alloys(self):
         """
@@ -140,8 +145,32 @@ class Blendpy(Alloy):
                     dilute_supercells.append(new_atoms)
         
         return dilute_supercells
+    
 
-    # TODO
+    def get_energies(self):
+        """
+        Calculates the total energies for each Atoms object in both the supercells
+        and dilute_alloys lists. For each structure, the potential energy is stored
+        in the Atoms object's info dictionary with key 'energy'.
+
+        Returns:
+            list: A list containing two lists: [energy_supercells, energy_dilute_alloys].
+        """
+        energy_supercells = []
+        for atoms in self.supercells:
+            energy = atoms.get_potential_energy()
+            atoms.info['energy'] = energy
+            energy_supercells.append(energy)
+
+        energy_dilute_alloys = []
+        for atoms in self.dilute_alloys:
+            energy = atoms.get_potential_energy()
+            atoms.info['energy'] = energy
+            energy_dilute_alloys.append(energy)
+
+        return [energy_supercells, energy_dilute_alloys]
+
+
     def optimize(self, method=BFGSLineSearch, fmax=0.01, steps=500, mask = [1,1,1,1,1,1]):
         """
         Optimizes all Atoms objects in both supercells and dilute_alloys lists.
@@ -158,16 +187,29 @@ class Blendpy(Alloy):
             ucf = UnitCellFilter(atoms, mask=mask)
             optimizer = method(ucf)
             optimizer.run(fmax=fmax, steps=steps)
+            energy = atoms.get_potential_energy()
+            atoms.info['energy'] = energy
 
         # Optimize dilute alloy structures.
         for atoms in self.dilute_alloys:
             ucf = UnitCellFilter(atoms, mask=mask)
             optimizer = method(ucf)
             optimizer.run(fmax=fmax, steps=steps)
+            energy = atoms.get_potential_energy()
+            atoms.info['energy'] = energy
+
 
     # TODO
-    def get_enthalpy(self, method='dsi'):
-        pass
+    def get_diluting_parameters(self):
+        number_atoms = [len(atoms) for atoms in self.supercells]
+        if len(set(number_atoms)) != 1:
+            raise ValueError(f"Not all supercells have the same number of atoms: {number_atoms}.")
+        
+        dilution = 1/number_atoms[0]
+        # m12 = 
+        # diluting_matrix = 
+        return dilution
+
 
     # TODO
     def get_entropy(self, method='dsi'):
@@ -195,18 +237,18 @@ if __name__ == '__main__':
     
     print("Before optimization:")
     for i, sc in enumerate(blendpy.supercells):
-        print(f"Supercell from {alloy_files[i]}: {sc.get_cell_lengths_and_angles()}")
+        print(f"Supercell from {alloy_files[i]}: {sc.info['energy']}")
     for da in blendpy.dilute_alloys:
-        print("Dilute alloy:", da.get_cell_lengths_and_angles())
+        print("Dilute alloy:", da.info['energy'])
     
     # Optimize all structures.
     blendpy.optimize(method=BFGSLineSearch, fmax=0.01, steps=500)
     
     print("\nAfter optimization:")
     for i, sc in enumerate(blendpy.supercells):
-        print(f"Optimized supercell from {alloy_files[i]}: {sc.get_cell_lengths_and_angles()}")
+        print(f"Optimized supercell from {alloy_files[i]}: {sc.info['energy']}")
     for da in blendpy.dilute_alloys:
-        print("Optimized dilute alloy:", da.get_cell_lengths_and_angles())
+        print("Optimized dilute alloy:", da.info['energy'])
 
 
 # GPAW calculator

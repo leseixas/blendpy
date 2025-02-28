@@ -32,6 +32,7 @@ Module blendpy
 version = '25.2.0'
 
 import numpy as np
+import pandas as pd
 from ase.io import read, write
 from ase import Atoms
 from ase.optimize import BFGS, BFGSLineSearch, CellAwareBFGS, MDMin, FIRE, FIRE2, GPMin, LBFGS, LBFGSLineSearch, ODE12r, GoodOldQuasiNewton
@@ -130,7 +131,6 @@ class Blendpy(Alloy):
         print("                                                ")
 
 
-
     def _create_dilute_alloys(self):
         """
         Creates and returns a list of diluted alloy supercells.
@@ -187,6 +187,7 @@ class Blendpy(Alloy):
                 energy_matrix[i,j] = atoms.info['energy']
         return energy_matrix
 
+
     def get_diluting_parameters(self):
         number_atoms_list = [ len(atoms) for row in self.dilute_alloys for atoms in row ]
         if len(set(number_atoms_list)) != 1:
@@ -201,14 +202,26 @@ class Blendpy(Alloy):
                 m_dsi[i,j] = energy[i,j] - ((1-x)*energy[i,i] + x * energy[j,j])
         return m_dsi * (96.487) # converting value to kJ/mol
 
-    def get_enthalpy(self, A, B, npoints=21):
+
+    def get_enthalpy_of_mixing(self, A, B, npoints=21):
         x = np.linspace(0,1,npoints) # molar fraction
         m_dsi = self.get_diluting_parameters()
         enthalpy = m_dsi[0,1] * x * (1-x)**2 + m_dsi[1,0] * x**2 * (1-x)
         return enthalpy
 
+
     # TODO
-    def get_entropy(self):
+    def get_entropy_of_mixing(self):
+        pass
+
+
+    # TODO
+    def get_spinodal_decomposition(self):
+        pass
+
+
+    # TODO
+    def get_phase_diagram(self):
         pass
 
 
@@ -247,7 +260,7 @@ if __name__ == '__main__':
     #     for atoms in row:
     #         print(f"{atoms.get_chemical_formula()}: ", atoms.info['energy'])
     
-    enthalpy = blendpy.get_enthalpy(A=0, B=1, npoints=21)
+    enthalpy = blendpy.get_enthalpy_of_mixing(A=0, B=1, npoints=21)
     print(enthalpy)
 
 

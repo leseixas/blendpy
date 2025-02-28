@@ -213,9 +213,12 @@ class DSIModel(Alloy):
         return enthalpy
 
 
-    # TODO
-    def get_entropy_of_mixing(self):
-        pass
+    def get_configurational_entropy(self, eps=1.e-8, npoints=21):
+        R = 8.314/1000
+        x = np.linspace(0,1,npoints) # molar fraction
+        eps = eps
+        entropy = - R * ( (1-x-eps)*np.log(1-(x-eps)) + (x+eps)*np.log(x+eps) )
+        return entropy
 
 
     # TODO

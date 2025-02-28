@@ -203,11 +203,16 @@ class Blendpy(Alloy):
         return m_dsi * (96.487) # converting value to kJ/mol
 
 
-    def get_enthalpy_of_mixing(self, A, B, npoints=21):
+    def get_enthalpy_of_mixing(self, A=0, B=1, npoints=21):
         x = np.linspace(0,1,npoints) # molar fraction
         m_dsi = self.get_diluting_parameters()
-        enthalpy = m_dsi[0,1] * x * (1-x)**2 + m_dsi[1,0] * x**2 * (1-x)
+        enthalpy = m_dsi[A,B] * x * (1-x)**2 + m_dsi[B,A] * x**2 * (1-x)
         return enthalpy
+
+
+    # TODO
+    def get_structural_energy_transition(self):
+        pass
 
 
     # TODO

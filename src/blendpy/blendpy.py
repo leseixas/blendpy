@@ -29,6 +29,8 @@
 Module blendpy
 '''
 
+version = '0.0.19'
+
 import numpy as np
 from ase.io import read, write
 from ase import Atoms
@@ -99,17 +101,11 @@ class Blendpy(Alloy):
             supercell (list): Supercell dimensions, e.g., [3, 3, 3].
             calculator (optional): A calculator instance to attach to all Atoms objects.
         """
-        # print("                                                ")
-        # print("   _      _                   _                 ")
-        # print("  | |__  | |  ___  _ __    __| | _ __   _   _   ")
-        # print("  | '_ \ | | / _ \| '_ \  / _` || '_ \ | | | |  ")
-        # print("  | |_) || ||  __/| | | || (_| || |_) || |_| |  ")
-        # print("  |_.__/ |_| \___||_| |_| \__,_|| .__/  \__, |  ")
-        # print("                                |_|     |___/   ")
-        # print("                                                ")
 
         super().__init__(alloy_basis, supercell)
         self.dilute_alloys = self._create_dilute_alloys()
+
+        self.banner()
 
         # If a calculator is provided, attach it to each Atoms object.
         if calculator is not None:
@@ -118,6 +114,20 @@ class Blendpy(Alloy):
                     atoms.calc = calculator
                     energy = atoms.get_potential_energy()
                     atoms.info['energy'] = energy
+
+
+    def banner(self):
+        print("                                                ")
+        print("   _      _                   _                 ")
+        print("  | |__  | |  ___  _ __    __| | _ __   _   _   ")
+        print("  | '_ \\ | | / _ \\| '_ \\  / _` || '_ \\ | | | |  ")
+        print("  | |_) || ||  __/| | | || (_| || |_) || |_| |  ")
+        print("  |_.__/ |_| \\___||_| |_| \\__,_|| .__/  \\__, |  ")
+        print("                                |_|     |___/   ")
+        print("                                                ")
+        print(f"                 version: {version}                 ")
+        print("                                                ")
+
 
 
     def _create_dilute_alloys(self):
@@ -148,14 +158,15 @@ class Blendpy(Alloy):
 
     def optimize(self, method=BFGSLineSearch, fmax=0.01, steps=500, logfile='optimization.log', mask = [1,1,1,1,1,1]):
         """
-        Optimizes all Atoms objects in dilute_alloys matrix.
-        
-        For each Atoms object, a UnitCellFilter is applied and a BFGS optimizer is created.
-        The optimizer is then run with the provided fmax and steps.
+        Atoms objects are optimized according to the specified optimization method and parameters.
         
         Parameters:
-            fmax (float): The maximum force criteria.
-            steps (int): The maximum number of optimization steps.
+            method (class): The method to optimize the Atoms object. (Default: BFGSLineSearch)
+            fmax (float): The maximum force criteria. (Default: 0.01 eV/ang)
+            steps (int): The maximum number of optimization steps. (Default: 500)
+            logfile (string): Specifies the file name where the computed optimization forces will be recorded. (Default: 'optimization.log')
+            mask (list): A list of directions and angles in Voigt notation that can be optimized.
+                         A value of 1 enables optimization, while a value of 0 fixes it. (Default: [1,1,1,1,1,1])
         """
 
         for row in self.dilute_alloys:
@@ -180,7 +191,11 @@ class Blendpy(Alloy):
 
 
     # TODO
-    def get_entropy(self, method='dsi'):
+    def get_enthalpy(self):
+        pass
+
+    # TODO
+    def get_entropy(self):
         pass
 
 
@@ -196,8 +211,7 @@ if __name__ == '__main__':
                         default_dtype="float32",
                         device='cpu')
 
-    # Example for binary alloys:
-    print("Binary Alloy Example:")
+    # Example:
     alloy_files = ['../../test/Au.vasp', '../../test/Pt.vasp']
     supercell = [2, 2, 2]  # This will result in supercells with 8 atoms each.
 
@@ -220,7 +234,3 @@ if __name__ == '__main__':
 #                     eigensolver=Davidson(5),
 #                     spinpol=False,
 #                     mixer=Mixer(0.05, 5, 100))
-
-
-
-

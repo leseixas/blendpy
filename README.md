@@ -15,33 +15,50 @@ $ pip install blendpy
 
 ## Getting started
 
+First, import the necessary modules from ASE and MACE:
 ```python
 from ase.io import write
 from ase.build import bulk
 from ase.optimize import BFGSLineSearch
 from ase.filters import UnitCellFilter
+```
 
+Next, create `Atoms` objects for gold (Au) and platinum (Pt) using the `bulk` function:
+```python
 # Create Au and Pt Atoms object
 gold = bulk("Au", cubic=True)
 platinum = bulk("Pt", cubic=True)
+```
 
-# Create a calculator object to optimize structures.
+Create a MACE calculator object to optimize the structures:
+```python
+# Initialize the MACE calculator
 from mace.calculators import mace_mp
 calc_mace = mace_mp(model="small",
                     dispersion=False,
                     default_dtype="float32",
                     device='cpu')
+```
 
+Assign the calculator to the `Atoms` objects:
+```python
+# Assign the calculator to the Atoms objects
 gold.calc = calc_mace
 platinum.calc = calc_mace
+```
 
-# Optimize Au and Pt unit cell.
+Optimize the unit cells of Au and Pt using the `BFGSLineSearch` optimizer:
+```python
+# Optimize Au and Pt unit cells
 optimizer_gold = BFGSLineSearch(UnitCellFilter(gold))
 optimizer_platinum = BFGSLineSearch(UnitCellFilter(platinum))
 optimizer_gold.run(fmax=0.01)
 optimizer_platinum.run(fmax=0.01)
+```
 
-# Save the optimized unit cells for Au and Pt.
+Save the optimized unit cells to CIF files:
+```python
+# Save the optimized unit cells for Au and Pt
 write("Au.cif", gold)
 write("Pt.cif", platinum)
 

@@ -38,6 +38,8 @@ from ase import Atoms
 from ase.optimize import BFGS, BFGSLineSearch, CellAwareBFGS, MDMin, FIRE, FIRE2, GPMin, LBFGS, LBFGSLineSearch, ODE12r, GoodOldQuasiNewton
 from ase.filters import UnitCellFilter
 
+
+
 class Alloy(Atoms):
     def __init__(self, alloy_basis=[], sublattice_alloy = None):
         """
@@ -52,6 +54,7 @@ class Alloy(Atoms):
         self._store_chemical_elements()
         self.sublattice_alloy = sublattice_alloy
 
+
     def _store_chemical_elements(self):
         """
         For each supercell, retrieve the chemical symbols using the 
@@ -63,11 +66,13 @@ class Alloy(Atoms):
             elements = atoms.get_chemical_symbols()
             self._chemical_elements.append(elements)
 
+
     def get_chemical_elements(self):
         """
         Returns the list of unique chemical elements (as sets) for each file.
         """
         return set(self._chemical_elements)
+
 
 
 class DSIModel(Alloy):
@@ -80,7 +85,6 @@ class DSIModel(Alloy):
             supercell (list): Supercell dimensions, e.g., [3, 3, 3].
             calculator (optional): A calculator instance to attach to all Atoms objects.
         """
-
         super().__init__(alloy_basis)
         self.n_components = len(alloy_basis)
         self.supercell = supercell
@@ -169,7 +173,6 @@ class DSIModel(Alloy):
             mask (list): A list of directions and angles in Voigt notation that can be optimized.
                          A value of 1 enables optimization, while a value of 0 fixes it. (Default: [1,1,1,1,1,1])
         """
-
         for row in self.dilute_alloys:
             for atoms in row:
                 ucf = UnitCellFilter(atoms, mask=mask)
@@ -203,16 +206,11 @@ class DSIModel(Alloy):
         return m_dsi * (96.4853321233100184) # converting value to kJ/mol
 
 
-    def get_enthalpy_of_mixing(self, A=0, B=1, npoints=21):
+    def get_enthalpy_of_mixing(self, A=0, B=1, npoints=21, slope=[0,0]):
         x = np.linspace(0,1,npoints) # molar fraction
         m_dsi = self.get_diluting_parameters()
-        enthalpy = m_dsi[A,B] * x * (1-x)**2 + m_dsi[B,A] * x**2 * (1-x)
+        enthalpy = m_dsi[A,B] * x * (1-x)**2 + m_dsi[B,A] * x**2 * (1-x) + (1-x) * slope[0] + x * slope[1]
         return enthalpy
-
-
-    # TODO
-    def get_structural_energy_transition(self):
-        pass
 
 
     # TODO
@@ -228,6 +226,65 @@ class DSIModel(Alloy):
     # TODO
     def get_phase_diagram(self):
         pass
+
+
+
+class Polymorph(Atoms):
+    def __init__(self, alpha, beta, calculator = None):
+        """
+        Initializes the Polymorph object.
+        """
+        super().__init__()
+        self.alpha = read(alpha)
+        self.beta = read(beta)
+        if calculator is None:
+            raise ValueError("Polymorph object need to have a calculator.")
+        self.calculator = calculator
+        self.polymorphs = [self.alpha, self.beta]
+        for atoms in self.polymorphs:
+            atoms.calc = self.calculator
+
+    
+    def get_energies(self):
+        energies = []
+        for atoms in self.polymorphs:
+            energy = atoms.get_potential_energy()
+            atoms.info['energy'] = energy
+            energies.append(energy)
+        return energies
+
+
+    def optimize(self, method=BFGSLineSearch, fmax=0.01, steps=500, logfile='optimization.log', mask = [1,1,1,1,1,1]):
+        """
+        Atoms objects are optimized according to the specified optimization method and parameters.
+        
+        Parameters:
+            method (class): The method to optimize the Atoms object. (Default: BFGSLineSearch)
+            fmax (float): The maximum force criteria. (Default: 0.01 eV/ang)
+            steps (int): The maximum number of optimization steps. (Default: 500)
+            logfile (string): Specifies the file name where the computed optimization forces will be recorded. (Default: 'optimization.log')
+            mask (list): A list of directions and angles in Voigt notation that can be optimized.
+                        A value of 1 enables optimization, while a value of 0 fixes it. (Default: [1,1,1,1,1,1])
+        """
+        for atoms in self.polymorphs:
+            ucf = UnitCellFilter(atoms, mask=mask)
+            optimizer = method(ucf, logfile=logfile)
+            optimizer.run(fmax=fmax, steps=steps)
+            energy = atoms.get_potential_energy()
+            atoms.info['energy'] = energy            
+
+
+    def get_structural_energy_transition(self):
+        '''
+        Calculates and returns the difference between the energies (in kJ/mol) of the alpha and beta phases, in the form:
+            delta_energy = energy(beta) - energy(alpha)
+        '''
+        energy_alpha = self.alpha.info['energy']
+        energy_beta = self.beta.info['energy']
+        num_atoms_alpha = len(self.alpha)
+        num_atoms_beta = len(self.beta)
+        delta_energy = energy_beta/num_atoms_beta - energy_alpha/num_atoms_alpha
+        return delta_energy * (96.4853321233100184) # converting value to kJ/mol
 
 
 # Example usage:
@@ -263,5 +320,11 @@ if __name__ == '__main__':
     
     enthalpy = blendpy.get_enthalpy_of_mixing(A=0, B=1, npoints=21)
     print(enthalpy)
+
+    # blendpy = Polymorph(alpha='../../test/Pt_fcc.vasp', beta='../../test/Pt_bcc.vasp', calculator = calc_mace)
+    # blendpy.optimize()
+    # print("Difference between alpha and beta phases:")
+    # print(blendpy.get_structural_energy_transition())
+
 
 

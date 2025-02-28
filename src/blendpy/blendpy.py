@@ -41,15 +41,15 @@ from ase.filters import UnitCellFilter
 
 
 class Alloy(Atoms):
-    def __init__(self, alloy_basis: list, sublattice_alloy = None):
+    def __init__(self, alloy_components: list, sublattice_alloy = None):
         """
         Initializes the Alloy object.
         
         Parameters:
-            alloy_basis (list): A list of filenames (e.g., POSCAR, extxyz, or CIF).
+            alloy_components (list): A list of filenames (e.g., POSCAR, extxyz, or CIF).
         """
         super().__init__(symbols=[], positions=[])
-        self.alloy_basis = alloy_basis
+        self.alloy_components = alloy_components
         self._chemical_elements = []  # To store the unique chemical elements for each file
         self._store_chemical_elements()
         self.sublattice_alloy = sublattice_alloy
@@ -61,7 +61,7 @@ class Alloy(Atoms):
         inherited get_chemical_symbols method, convert them to a set 
         to list unique elements, and store them in _chemical_elements.
         """
-        for filename in self.alloy_basis:
+        for filename in self.alloy_components:
             atoms = read(filename)
             elements = atoms.get_chemical_symbols()
             self._chemical_elements.append(elements)
@@ -76,17 +76,17 @@ class Alloy(Atoms):
 
 
 class DSIModel(Alloy):
-    def __init__(self, alloy_basis: list, supercell: list = [1,1,1], calculator = None):
+    def __init__(self, alloy_components: list, supercell: list = [1,1,1], calculator = None):
         """
         Initializes the Dilute Solution Interpolation (DSI) Model object.
         
         Parameters:
-            alloy_basis (list): List of filenames (e.g., POSCAR, extxyz, or CIF).
+            alloy_components (list): List of filenames (e.g., POSCAR, extxyz, or CIF).
             supercell (list): Supercell dimensions, e.g., [3, 3, 3].
             calculator (optional): A calculator instance to attach to all Atoms objects.
         """
-        super().__init__(alloy_basis)
-        self.n_components = len(alloy_basis)
+        super().__init__(alloy_components)
+        self.n_components = len(alloy_components)
         self.supercell = supercell
         self._supercells = []         # To store the supercell Atoms objects
         self._create_supercells()
@@ -119,9 +119,9 @@ class DSIModel(Alloy):
 
     def _create_supercells(self):
         """
-        Reads each file in alloy_basis as an ASE Atoms object, applies the repeat (supercell) transformation, and stores the resulting supercell.
+        Reads each file in alloy_components as an ASE Atoms object, applies the repeat (supercell) transformation, and stores the resulting supercell.
         """
-        for filename in self.alloy_basis:
+        for filename in self.alloy_components:
             # Read the structure from file (ASE infers file type automatically)
             atoms = read(filename)
             # Create the supercell using the repeat method

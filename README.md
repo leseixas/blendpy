@@ -18,30 +18,55 @@ $ pip install blendpy
 ```python
 from blendpy import DSIModel
 
-# Calculator
+# Create a calculator object to optimize structures.
 from mace.calculators import mace_mp
 calc_mace = mace_mp(model="small",
                     dispersion=False,
                     default_dtype="float32",
                     device='cpu')
 
-# The alloy is created by combining two key components.                
-alloy_files = ['Au.cif', 'Pt.cif']
-
-# Supercell to create the dilution.
-supercell = [2,2,2]
-
 # Create a DSIModel object.
-blendpy = DSIModel(alloy_files, supercell, calculator=calc_mace)
+blendpy = DSIModel(alloy_components = ['Au.cif', 'Pt.cif'],
+                   supercell = [2,2,2],
+                   calculator=calc_mace)
 
 # Optimize the structures.
-blendpy.optimize(method=BFGSLineSearch, fmax=0.01, steps=500)
+blendpy.optimize(method=BFGSLineSearch, fmax=0.01)
 
 # Calculate the enthalpy of mixing for the AuPt alloy.
-enthalpy_of_mixing = blendpy.get_enthalpy_of_mixing(npoints=21)
-print(enthalpy_of_mixing)
+enthalpy_of_mixing = blendpy.get_enthalpy_of_mixing(npoints=101)
 ```
+
+### Plotting the enthalpy of mixing
+
+```python
+import matplotlib.pyplot as plt
+
+TODO
+
+```
+
+## Spinodal decomposition curve
+
+```python
+
+TODO
+
+```
+
+## Phase diagram
+
+```python
+
+TODO
+
+```
+
 
 ## License
 
 This is an open source code under [MIT License](LICENSE).
+
+## Acknowledgements
+
+We thank financial support from FAPESP [(Grant No. 2022/14549-3)](https://bvs.fapesp.br/pt/auxilios/111791/materiais-de-alta-entropia-inteligiveis-desenvolvendo-modelos-dados-e-aplicacoes/), INCT Materials Informatics (Grant No. 406447/2022-5), and CNPq (Grant No. 311324/2020-7).

@@ -32,42 +32,25 @@ Module blendpy
 version = '25.2.3'
 
 import numpy as np
-import pandas as pd
-from ase.io import read, write
+# import pandas as pd
+from ase.io import read
 from ase import Atoms
 from ase.optimize import BFGS, BFGSLineSearch, CellAwareBFGS, MDMin, FIRE, FIRE2, GPMin, LBFGS, LBFGSLineSearch, ODE12r, GoodOldQuasiNewton
 from ase.filters import UnitCellFilter
 
 class Alloy(Atoms):
-    def __init__(self, alloy_basis=[], supercell=[1,1,1], sublattice_alloy = None):
+    def __init__(self, alloy_basis=[], sublattice_alloy = None):
         """
         Initializes the Alloy object.
         
         Parameters:
             alloy_basis (list): A list of filenames (e.g., POSCAR, extxyz, or CIF).
-            supercell (list): A list representing the supercell dimensions, e.g., [3, 3, 3].
         """
-        super().__init__(symbols=[], positions=[]) # super().__init__()
+        super().__init__(symbols=[], positions=[])
         self.alloy_basis = alloy_basis
-        self.supercell = supercell
-        self._supercells = []         # To store the supercell Atoms objects
         self._chemical_elements = []  # To store the unique chemical elements for each file
-        self._create_supercells()
         self._store_chemical_elements()
         self.sublattice_alloy = sublattice_alloy
-
-    def _create_supercells(self):
-        """
-        Reads each file in alloy_basis as an ASE Atoms object,
-        applies the repeat (supercell) transformation,
-        and stores the resulting supercell.
-        """
-        for filename in self.alloy_basis:
-            # Read the structure from file (ASE infers file type automatically)
-            atoms = read(filename)
-            # Create the supercell using the repeat method
-            supercell_atoms = atoms.repeat(self.supercell)
-            self._supercells.append(supercell_atoms)
 
     def _store_chemical_elements(self):
         """
@@ -75,27 +58,22 @@ class Alloy(Atoms):
         inherited get_chemical_symbols method, convert them to a set 
         to list unique elements, and store them in _chemical_elements.
         """
-        for atoms in self._supercells:
+        for filename in self.alloy_basis:
+            atoms = read(filename)
             elements = atoms.get_chemical_symbols()
             self._chemical_elements.append(elements)
-
-    def get_supercells(self):
-        """
-        Returns the list of supercell ASE Atoms objects.
-        """
-        return self._supercells
 
     def get_chemical_elements(self):
         """
         Returns the list of unique chemical elements (as sets) for each file.
         """
-        return self._chemical_elements
+        return set(self._chemical_elements)
 
 
-class Blendpy(Alloy):
-    def __init__(self, alloy_basis, supercell, calculator=None):
+class DSIModel(Alloy):
+    def __init__(self, alloy_basis, supercell=[1,1,1], calculator=None):
         """
-        Initializes the Blendpy object.
+        Initializes the Dilute Solution Interpolation (DSI) Model object.
         
         Parameters:
             alloy_basis (list): List of filenames (e.g., POSCAR, extxyz, or CIF).
@@ -103,10 +81,14 @@ class Blendpy(Alloy):
             calculator (optional): A calculator instance to attach to all Atoms objects.
         """
 
-        super().__init__(alloy_basis, supercell)
-        self.dilute_alloys = self._create_dilute_alloys()
+        super().__init__(alloy_basis)
         self.n_components = len(alloy_basis)
+        self.supercell = supercell
+        self._supercells = []         # To store the supercell Atoms objects
+        self._create_supercells()
+        self.dilute_alloys = self._create_dilute_alloys()
 
+        # Show blendpy initial banner
         self.banner()
 
         # If a calculator is provided, attach it to each Atoms object.
@@ -131,16 +113,34 @@ class Blendpy(Alloy):
         print("                                                ")
 
 
+    def _create_supercells(self):
+        """
+        Reads each file in alloy_basis as an ASE Atoms object, applies the repeat (supercell) transformation, and stores the resulting supercell.
+        """
+        for filename in self.alloy_basis:
+            # Read the structure from file (ASE infers file type automatically)
+            atoms = read(filename)
+            # Create the supercell using the repeat method
+            supercell_atoms = atoms.repeat(self.supercell)
+            self._supercells.append(supercell_atoms)
+
+
+    def get_supercells(self):
+        """
+        Returns the list of supercell ASE Atoms objects.
+        """
+        return self._supercells
+    
+
     def _create_dilute_alloys(self):
         """
         Creates and returns a list of diluted alloy supercells.
         """
-
         n = len(self._supercells)
         if n < 2:
             raise ValueError("Need at least two elements to create an alloy.")
         
-        dopant = [atoms.get_chemical_symbols()[-1] for atoms in self._supercells]
+        dopant = [atoms.get_chemical_symbols()[0] for atoms in self._supercells]
 
         # Iterate over all pairs (i, j)
         dilute_supercells_matrix = []
@@ -149,8 +149,8 @@ class Blendpy(Alloy):
             for j in range(n):
                 # Copy the base supercell from index i.
                 new_atoms = self._supercells[i].copy()
-                # Replace the last atom's symbol with the last symbol from supercell j.
-                new_atoms[-1].symbol = dopant[j]
+                # Replace the first atom's symbol with the first symbol from supercell j.
+                new_atoms[0].symbol = dopant[j]
                 dilute_matrix_row.append(new_atoms)
             dilute_supercells_matrix.append(dilute_matrix_row)
         
@@ -200,7 +200,7 @@ class Blendpy(Alloy):
         for i, row in enumerate(self.dilute_alloys):
             for j, atoms in enumerate(row):
                 m_dsi[i,j] = energy[i,j] - ((1-x)*energy[i,i] + x * energy[j,j])
-        return m_dsi * (96.487) # converting value to kJ/mol
+        return m_dsi * (96.4853321233100184) # converting value to kJ/mol
 
 
     def get_enthalpy_of_mixing(self, A=0, B=1, npoints=21):
@@ -256,14 +256,10 @@ if __name__ == '__main__':
     alloy_files = ['../../test/Au.vasp', '../../test/Pt.vasp']
     supercell = [2,2,2]  # This will result in supercells with 8 atoms each.
 
-    blendpy = Blendpy(alloy_files, supercell, calculator=calc_mace)
+    blendpy = DSIModel(alloy_files, supercell, calculator=calc_mace)
 
     # Optimize all structures.
     blendpy.optimize(method=BFGSLineSearch, fmax=0.01, steps=500)
-
-    # for row in blendpy.dilute_alloys:
-    #     for atoms in row:
-    #         print(f"{atoms.get_chemical_formula()}: ", atoms.info['energy'])
     
     enthalpy = blendpy.get_enthalpy_of_mixing(A=0, B=1, npoints=21)
     print(enthalpy)

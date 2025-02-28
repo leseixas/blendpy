@@ -1,7 +1,10 @@
+<p align="center">
+<img src="https://raw.githubusercontent.com/leseixas/blendpy/master/resources/logo.png" style="height: 150px"></p>
+
 [![License: MIT](https://img.shields.io/github/license/leseixas/blendpy?color=green&style=for-the-badge)](LICENSE)    [![PyPI](https://img.shields.io/pypi/v/blendpy?color=red&label=version&style=for-the-badge)](https://pypi.org/project/blendpy/)
 
 # blendpy
-Blendpy uses ab initio simulations with ASE calculators to compute alloy properties like enthalpy of mixing. It supports binary and ternary systems, including full and suballoys for compounds.
+**Blendpy** uses atomistic simulations with ASE calculators to compute alloy properties like enthalpy of mixing. It supports binary and multicomponent systems, including alloys and pseudoalloys.
 
 ## Installation
 

@@ -8,7 +8,7 @@ version = "25.2.2"
 authors = [
   { name="Leandro Seixas", email="leandro.fisica@gmail.com" },
 ]
-description = "Blendpy: Blendpy uses atomistic simulations with ASE calculators to compute alloy properties like enthalpy of mixing. It supports binary and multicomponent systems, including alloys and pseudoalloys."
+description = "Blendpy uses atomistic simulations with ASE calculators to compute alloy properties like enthalpy of mixing. It supports binary and multicomponent systems, including alloys and pseudoalloys."
 readme = "README.md"
 requires-python = ">=3.9"
 dependencies = [

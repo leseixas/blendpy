@@ -123,19 +123,11 @@ class Blendpy(Alloy):
     def _create_dilute_alloys(self):
         """
         Creates and returns a list of diluted alloy supercells.
-        
-        For each supercell (base), a copy is made and its last atom's chemical symbol is replaced 
-        by the last atom's symbol from every other supercell.
-        
-        For example, with alloys_basis=['Au.cif', 'Ag.cif', 'Pt.cif'] and supercell=[2,2,2]:
-          - From Au8, two alloys are made: Au7Ag1 and Au7Pt1.
-          - From Ag8, two alloys: Ag7Au1 and Ag7Pt1.
-          - From Pt8, two alloys: Pt7Au1 and Pt7Ag1.
         """
 
         n = len(self._supercells)
         if n < 2:
-            raise ValueError("Need at least two supercells to create dilute alloys.")
+            raise ValueError("Need at least two elements to create an alloy.")
         
         dopant = [atoms.get_chemical_symbols()[-1] for atoms in self._supercells]
 

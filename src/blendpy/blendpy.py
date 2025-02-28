@@ -29,7 +29,7 @@
 Module blendpy
 '''
 
-version = '0.0.21'
+version = '25.2.0'
 
 import numpy as np
 from ase.io import read, write
@@ -201,9 +201,11 @@ class Blendpy(Alloy):
                 m_dsi[i,j] = energy[i,j] - ((1-x)*energy[i,i] + x * energy[j,j])
         return m_dsi * (96.487) # converting value to kJ/mol
 
-    # TODO
-    def get_enthalpy(self):
-        pass
+    def get_enthalpy(self, A, B, npoints=21):
+        x = np.linspace(0,1,npoints) # molar fraction
+        m_dsi = self.get_diluting_parameters()
+        enthalpy = m_dsi[0,1] * x * (1-x)**2 + m_dsi[1,0] * x**2 * (1-x)
+        return enthalpy
 
     # TODO
     def get_entropy(self):
@@ -241,11 +243,11 @@ if __name__ == '__main__':
     # Optimize all structures.
     blendpy.optimize(method=BFGSLineSearch, fmax=0.01, steps=500)
 
-    for row in blendpy.dilute_alloys:
-        for atoms in row:
-            print(f"{atoms.get_chemical_formula()}: ", atoms.info['energy'])
+    # for row in blendpy.dilute_alloys:
+    #     for atoms in row:
+    #         print(f"{atoms.get_chemical_formula()}: ", atoms.info['energy'])
     
-    m_dsi = blendpy.get_diluting_parameters()
-    print(m_dsi)
+    enthalpy = blendpy.get_enthalpy(A=0, B=1, npoints=21)
+    print(enthalpy)
 
 

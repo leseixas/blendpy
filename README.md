@@ -86,7 +86,7 @@ Calculate the enthalpy of mixing for the AuPt alloy:
 enthalpy_of_mixing = blendpy.get_enthalpy_of_mixing(npoints=101)
 ```
 
-Plottingthe enthalpy of mixing
+Plotting the enthalpy of mixing
 ```python
 import numpy as np
 import matplotlib.pyplot as plt
@@ -113,9 +113,9 @@ plt.show()
 ```
 
 <p align="center">
-<img src="https://raw.githubusercontent.com/leseixas/blendpy/refs/heads/main/figs/aupt_enthalpy_of_mixing.png" style="height: 150px"></p>
+<img src="https://raw.githubusercontent.com/leseixas/blendpy/refs/heads/main/figs/aupt_enthalpy_of_mixing.png" style="height: 400px"></p>
 
-<p align="center"><a name="fig1">Figure 1</a> - Enthalpy of mixing for the alloy</p>
+<p align="center"><a name="fig1">Figure 1</a> - Enthalpy of mixing for the AuPt alloy calculated with DSI model and MACE interatomic potentials.</p>
 
 ## Spinodal decomposition curve
 

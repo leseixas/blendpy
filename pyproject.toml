@@ -10,7 +10,7 @@ authors = [
 ]
 description = "Blendpy uses atomistic simulations with ASE calculators to compute alloy properties like enthalpy of mixing. It supports binary and multicomponent systems, including alloys and pseudoalloys."
 readme = "README.md"
-license = {text = "MIT License"} 
+license = {file = "LICENSE"} 
 requires-python = ">=3.9"
 dependencies = [
     'numpy',
@@ -20,6 +20,7 @@ dependencies = [
 classifiers = [
     "Programming Language :: Python :: 3",
     "Operating System :: OS Independent",
+    "License :: OSI Approved :: MIT License",
     "Topic :: Scientific/Engineering :: Chemistry",
     "Topic :: Scientific/Engineering :: Physics"
 ]

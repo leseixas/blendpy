@@ -16,7 +16,7 @@ $ pip install blendpy
 ## Getting started
 
 ```python
-from blendpy import Blendpy
+from blendpy import DSIModel
 
 # Calculator
 from mace.calculators import mace_mp
@@ -31,17 +31,17 @@ alloy_files = ['Au.cif', 'Pt.cif']
 # Supercell to create the dilution.
 supercell = [2,2,2]
 
-# Create a Blendpy object.
-blendpy = Blendpy(alloy_files, supercell, calculator=calc_mace)
+# Create a DSIModel object.
+blendpy = DSIModel(alloy_files, supercell, calculator=calc_mace)
 
 # Optimize the structures.
 blendpy.optimize(method=BFGSLineSearch, fmax=0.01, steps=500)
 
 # Calculate the enthalpy of mixing for the AuPt alloy.
-enthalpy_of_mixing = blendpy.get_enthalpy_of_mixing(A=0, B=1, npoints=21)
+enthalpy_of_mixing = blendpy.get_enthalpy_of_mixing(npoints=21)
 print(enthalpy_of_mixing)
 ```
 
 ## License
 
-This is an open source code under [MIT License](LICENSE.txt).
+This is an open source code under [MIT License](LICENSE).

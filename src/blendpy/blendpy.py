@@ -41,6 +41,13 @@ from ase.filters import UnitCellFilter
 
 
 class Alloy(Atoms):
+    '''
+    A class representing an alloy, inheriting from the Atoms class.
+    Methods:
+        __init__(alloy_components: list, sublattice_alloy=None):
+        _store_chemical_elements():
+        get_chemical_elements():
+    '''
     def __init__(self, alloy_components: list, sublattice_alloy = None):
         """
         Initialize a new instance of the Alloy class.
@@ -363,7 +370,37 @@ class DSIModel(Alloy):
         reversed_df2 = df2.iloc[::-1].reset_index(drop=True)
         df_result = pd.concat([df1, reversed_df2], axis=0, ignore_index=True)
         df_spinodal = df_result.dropna()
+        return df_spinodal
 
+
+    def get_spinodal_decomposition_new(self, A: int = 0, B: int = 1, eps: float = 1.e-4, temperatures = np.arange(600, 2501, 5), npoints: int = 201):
+        """
+        Calculate the spinodal decomposition curve for a binary mixture.
+
+        Parameters:
+        A (int): Index of the first component in the mixture. (Default: 0)
+        B (int): Index of the second component in the mixture. (Default: 1)
+        eps (float): Small value to avoid division by zero in entropy calculation. (Default: 1.e-4)
+        temperatures (array-like): Array of temperatures at which to calculate the spinodal decomposition. (Default: np.arange(600, 2501, 5))
+        npoints (int): Number of points to use in the calculation. (Default: 201)
+
+        Returns:
+        pd.DataFrame: DataFrame containing the spinodal decomposition curve with columns "x" (molar fraction) and "t" (temperature).
+        """
+        x = np.linspace(0, 1, npoints)
+        enthalpy = self.get_enthalpy_of_mixing(A, B, npoints)
+        entropy = self.get_configurational_entropy(eps, npoints)
+
+        spinodal = []
+        for t in temperatures:
+            gibbs = enthalpy - t * entropy
+            dx = 1 / npoints
+            diff2_gibbs = np.gradient(np.gradient(gibbs, dx), dx)
+            idx = np.argwhere(np.diff(np.sign(diff2_gibbs))).flatten()
+            for i in idx:
+                spinodal.append([x[i], t])
+
+        df_spinodal = pd.DataFrame(spinodal, columns=["x", "t"])
         return df_spinodal
 
 

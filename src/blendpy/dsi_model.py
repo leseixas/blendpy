@@ -28,7 +28,6 @@
 Module DSI model
 '''
 
-
 import numpy as np
 import pandas as pd
 from ase.io import read
@@ -36,8 +35,8 @@ from ase.atoms import Atoms
 from ase.optimize import BFGS, BFGSLineSearch, LBFGS, LBFGSLineSearch, MDMin, GPMin, FIRE, FIRE2, ODE12r, GoodOldQuasiNewton
 from ase.filters import UnitCellFilter
 
-from ._version import __version__
 from .alloy import Alloy
+
 
 # Constants
 R = 8.314462618 / 1000  # Gas constant in kJ/(mol*K)
@@ -85,17 +84,17 @@ class DSIModel(Alloy):
                     atoms.info['energy'] = energy
 
 
-    def banner(self):
-        print("                                                ")
-        print("   _      _                   _                 ")
-        print("  | |__  | |  ___  _ __    __| | _ __   _   _   ")
-        print("  | '_ \\ | | / _ \\| '_ \\  / _` || '_ \\ | | | |  ")
-        print("  | |_) || ||  __/| | | || (_| || |_) || |_| |  ")
-        print("  |_.__/ |_| \\___||_| |_| \\__,_|| .__/  \\__, |  ")
-        print("                                |_|     |___/   ")
-        print("                                                ")
-        print(f"                 version: {__version__}                 ")
-        print("                                                ")
+    # def banner(self):
+    #     print("                                                ")
+    #     print("\033[36m   _      _                   _                 \033[0m")
+    #     print("\033[36m  | |__  | |  ___  _ __    __| | _ __   _   _   \033[0m")
+    #     print("\033[36m  | '_ \\ | | / _ \\| '_ \\  / _` || '_ \\ | | | |  \033[0m")
+    #     print("\033[36m  | |_) || ||  __/| | | || (_| || |_) || |_| |  \033[0m")
+    #     print("\033[36m  |_.__/ |_| \\___||_| |_| \\__,_|| .__/  \\__, |  \033[0m")
+    #     print("\033[36m                                |_|     |___/   \033[0m")
+    #     print("\033[36m                                                \033[0m")
+    #     print(f"                 version: {__version__}                 ")
+    #     print("                                                ")
 
 
     def _create_supercells(self):

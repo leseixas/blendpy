@@ -99,8 +99,15 @@ ax.set_xlim(0,1)
 ax.set_ylim(-7,7)
 ax.set_xticks(np.linspace(0,1,6))
 ax.set_yticks(np.arange(-6,7,2))
-ax.plot(x, enthalpy_of_mixing, color='#d53e4f', linewidth=3, label="Au$_{1-x}$Pt$_{x}$")
-ax.legend(loc="best", fontsize=20)
+
+# Plot the data
+ax.plot(x, enthalpy_of_mixing, color='#d53e4f', linewidth=3, zorder=2)
+ax.scatter(x[::10], enthalpy_of_mixing[::10], color='#d53e4f', s=80, zorder=2, label="Au$_{1-x}$Pt$_{x}$")
+
+# Reference: H. Okamoto and T.B. Massalski, Bull. Alloy Phase Diagrams 1 (1985) 46.
+df_exp = pd.read_csv("data/experimental/exp_AuPt.csv")
+ax.plot(df_exp['x'][::2], df_exp['enthalpy'][::2], 's', color='#000000', markersize=8, label="Exp. Data", zorder=1)
+ax.legend(loc="best", fontsize=16)
 
 ax.tick_params(direction='in', axis='both', which='major', labelsize=20, width=3, length=8)
 ax.set_box_aspect(1)
@@ -129,11 +136,11 @@ temperatures = np.arange(300, 3001, 5)
 
 # spinodal curve
 df_spinodal = blendpy.get_spinodal_decomposition(temperatures = temperatures, npoints = 501)
-df_spinodal.to_csv("spinodal_AuPt.csv", index=False, header=True, sep=',')
+df_spinodal.to_csv("data/phase_diagram/spinodal_AuPt.csv", index=False, header=True, sep=',')
 
 # binodal curve
 df_binodal = blendpy.get_binodal_curve(temperatures = temperatures, npoints=501)
-df_binodal.to_csv("binodal_AuPt.csv", index=False, header=True, sep=',')
+df_binodal.to_csv("data/phase_diagram/binodal_AuPt.csv", index=False, header=True, sep=',')
 ```
 
 To plot the phase diagram featuring the spinodal and binodal decomposition curves, we proceed as follows:

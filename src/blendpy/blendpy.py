@@ -29,7 +29,6 @@
 Module blendpy
 '''
 
-
 import numpy as np
 import pandas as pd
 from ase.io import read
@@ -37,12 +36,12 @@ from ase import Atoms
 from ase.optimize import BFGS, BFGSLineSearch, LBFGS, LBFGSLineSearch, MDMin, GPMin, FIRE, FIRE2, ODE12r, GoodOldQuasiNewton
 from ase.filters import UnitCellFilter
 
-from .alloy import Alloy
-from .dsi_model import DSIModel
-from .polymorph import Polymorph
-
 # Example usage:
 if __name__ == '__main__':
+    from alloy import Alloy
+    from dsi_model import DSIModel
+    from polymorph import Polymorph
+
     import warnings
     warnings.filterwarnings("ignore")
 

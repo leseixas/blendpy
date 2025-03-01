@@ -5,4 +5,4 @@ from .alloy import Alloy
 from .dsi_model import DSIModel
 from .polymorph import Polymorph
 
-__version__ = '25.3.0'
+__version__ = '25.3.1'

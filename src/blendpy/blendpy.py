@@ -458,6 +458,18 @@ class BlendpyIO(Atoms):
 
 
 
+class SQS(Atoms):
+    def __init__(self):
+        pass
+
+
+
+class ACE(Atoms):
+    def __init__(self):
+        pass
+
+
+
 # Example usage:
 if __name__ == '__main__':
     import warnings

@@ -183,6 +183,14 @@ plt.show()
 <p align="center"><a name="fig1">Figure 2</a> - Phase diagram of the Au–Pt alloy computed using the DSI model and MACE interatomic potentials.</p>
 
 
+# Enthalpy of mixing with polymorphism
+
+```python
+
+# TODO: 
+
+```
+
 # License
 
 This is an open source code under [MIT License](LICENSE).

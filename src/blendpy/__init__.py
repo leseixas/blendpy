@@ -6,4 +6,4 @@ from .blendpy import DSIModel
 from .blendpy import version
 from .polymorph import Polymorph
 
-__version__ = version
+__version__ = '25.3.0'

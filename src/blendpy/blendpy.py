@@ -37,55 +37,7 @@ from ase.io import read
 from ase import Atoms
 from ase.optimize import BFGS, BFGSLineSearch, CellAwareBFGS, MDMin, FIRE, FIRE2, GPMin, LBFGS, LBFGSLineSearch, ODE12r, GoodOldQuasiNewton
 from ase.filters import UnitCellFilter
-
-
-
-class Alloy(Atoms):
-    '''
-    A class representing an alloy, inheriting from the Atoms class.
-    Methods:
-        __init__(alloy_components: list, sublattice_alloy=None):
-        _store_chemical_elements():
-        get_chemical_elements():
-    '''
-    def __init__(self, alloy_components: list, sublattice_alloy = None):
-        """
-        Initialize a new instance of the Alloy class.
-
-        Parameters:
-        alloy_components (list): A list of alloy components.
-        sublattice_alloy (optional): An optional parameter for sublattice alloy. Default is None.
-
-        Attributes:
-        alloy_components (list): Stores the alloy components.
-        _chemical_elements (list): Stores the unique chemical elements for each file.
-        sublattice_alloy: Stores the sublattice alloy if provided.
-        """
-        super().__init__(symbols=[], positions=[])
-        self.alloy_components = alloy_components
-        self._chemical_elements = []  # To store the unique chemical elements for each file
-        self._store_chemical_elements()
-        self.sublattice_alloy = sublattice_alloy
-
-
-    def _store_chemical_elements(self):
-        """
-        For each supercell, retrieve the chemical symbols using the 
-        inherited get_chemical_symbols method, convert them to a set 
-        to list unique elements, and store them in _chemical_elements.
-        """
-        for filename in self.alloy_components:
-            atoms = read(filename)
-            elements = atoms.get_chemical_symbols()
-            self._chemical_elements.append(elements)
-
-
-    def get_chemical_elements(self):
-        """
-        Returns the list of unique chemical elements (as sets) for each file.
-        """
-        return set(self._chemical_elements)
-
+from .alloy import Alloy
 
 
 class DSIModel(Alloy):
@@ -271,7 +223,7 @@ class DSIModel(Alloy):
         m_dsi = np.zeros((n,n), dtype=float)
         energy = self.get_energy_matrix()
         for i, row in enumerate(self.dilute_alloys):
-            for j, atoms in enumerate(row):
+            for j in range(len(row)):
                 m_dsi[i,j] = energy[i,j] - ((1-x)*energy[i,i] + x * energy[j,j])
         return m_dsi * (96.4853321233100184) # converting value to kJ/mol
 
@@ -370,37 +322,6 @@ class DSIModel(Alloy):
         reversed_df2 = df2.iloc[::-1].reset_index(drop=True)
         df_result = pd.concat([df1, reversed_df2], axis=0, ignore_index=True)
         df_spinodal = df_result.dropna()
-        return df_spinodal
-
-
-    def get_spinodal_decomposition_new(self, A: int = 0, B: int = 1, eps: float = 1.e-4, temperatures = np.arange(600, 2501, 5), npoints: int = 201):
-        """
-        Calculate the spinodal decomposition curve for a binary mixture.
-
-        Parameters:
-        A (int): Index of the first component in the mixture. (Default: 0)
-        B (int): Index of the second component in the mixture. (Default: 1)
-        eps (float): Small value to avoid division by zero in entropy calculation. (Default: 1.e-4)
-        temperatures (array-like): Array of temperatures at which to calculate the spinodal decomposition. (Default: np.arange(600, 2501, 5))
-        npoints (int): Number of points to use in the calculation. (Default: 201)
-
-        Returns:
-        pd.DataFrame: DataFrame containing the spinodal decomposition curve with columns "x" (molar fraction) and "t" (temperature).
-        """
-        x = np.linspace(0, 1, npoints)
-        enthalpy = self.get_enthalpy_of_mixing(A, B, npoints)
-        entropy = self.get_configurational_entropy(eps, npoints)
-
-        spinodal = []
-        for t in temperatures:
-            gibbs = enthalpy - t * entropy
-            dx = 1 / npoints
-            diff2_gibbs = np.gradient(np.gradient(gibbs, dx), dx)
-            idx = np.argwhere(np.diff(np.sign(diff2_gibbs))).flatten()
-            for i in idx:
-                spinodal.append([x[i], t])
-
-        df_spinodal = pd.DataFrame(spinodal, columns=["x", "t"])
         return df_spinodal
 
 
@@ -536,13 +457,13 @@ if __name__ == '__main__':
     blendpy = DSIModel(alloy_files, supercell, calculator=calc_mace)
 
     # Optimize all structures.
-    blendpy.optimize(method=BFGSLineSearch, fmax=0.01, steps=500)
+    blendpy.optimize(method=BFGSLineSearch, fmax=0.01, steps=500, logfile=None)
 
-    enthalpy = blendpy.get_enthalpy_of_mixing(A=0, B=1, npoints=21)
+    enthalpy = blendpy.get_enthalpy_of_mixing(A=0, B=1, npoints=101)
     print(enthalpy)
 
-    # df_spinodal = blendpy.get_spinodal_decomposition(temperatures = np.arange(500, 3000, 2), npoints = 501)
-    # df_spinodal.to_csv("spinodal.csv", index=False, header=True, sep=',')
+    df_spinodal = blendpy.get_spinodal_decomposition(temperatures = np.arange(300, 3000, 1), npoints = 501)
+    df_spinodal.to_csv("../../test/spinodal.csv", index=False, header=True, sep=',')
 
     # blendpy = Polymorph(alpha='../../test/Pt_fcc.vasp', beta='../../test/Pt_bcc.vasp', calculator = calc_mace)
     # blendpy.optimize()

@@ -36,8 +36,8 @@ from ase.atoms import Atoms
 from ase.optimize import BFGS, BFGSLineSearch, LBFGS, LBFGSLineSearch, MDMin, GPMin, FIRE, FIRE2, ODE12r, GoodOldQuasiNewton
 from ase.filters import UnitCellFilter
 
+from ._version import __version__
 from .alloy import Alloy
-from .__init__ import version
 
 # Constants
 R = 8.314462618 / 1000  # Gas constant in kJ/(mol*K)

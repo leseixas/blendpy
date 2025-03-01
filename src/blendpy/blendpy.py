@@ -43,10 +43,16 @@ from ase.filters import UnitCellFilter
 class Alloy(Atoms):
     def __init__(self, alloy_components: list, sublattice_alloy = None):
         """
-        Initializes the Alloy object.
-        
+        Initialize a new instance of the Alloy class.
+
         Parameters:
-            alloy_components (list): A list of filenames (e.g., POSCAR, extxyz, or CIF).
+        alloy_components (list): A list of alloy components.
+        sublattice_alloy (optional): An optional parameter for sublattice alloy. Default is None.
+
+        Attributes:
+        alloy_components (list): Stores the alloy components.
+        _chemical_elements (list): Stores the unique chemical elements for each file.
+        sublattice_alloy: Stores the sublattice alloy if provided.
         """
         super().__init__(symbols=[], positions=[])
         self.alloy_components = alloy_components
@@ -78,12 +84,23 @@ class Alloy(Atoms):
 class DSIModel(Alloy):
     def __init__(self, alloy_components: list, supercell: list = [1,1,1], calculator = None):
         """
-        Initializes the Dilute Solution Interpolation (DSI) Model object.
-        
+        Initialize the DSIModel class with alloy components, supercell dimensions, and an optional calculator.
+
         Parameters:
-            alloy_components (list): List of filenames (e.g., POSCAR, extxyz, or CIF).
-            supercell (list): Supercell dimensions, e.g., [3, 3, 3].
-            calculator (optional): A calculator instance to attach to all Atoms objects.
+        alloy_components (list): List of alloy components.
+        supercell (list, optional): Dimensions of the supercell. (Default: [1, 1, 1])
+        calculator (optional): Calculator to attach to each Atoms object. Defaults to None.
+
+        Attributes:
+        n_components (int): Number of alloy components.
+        supercell (list): Dimensions of the supercell.
+        _supercells (list): List to store the supercell Atoms objects.
+        dilute_alloys (list): List of dilute alloy configurations.
+
+        Methods:
+        banner(): Display the initial banner for blendpy.
+        _create_supercells(): Create supercell configurations.
+        _create_dilute_alloys(): Create dilute alloy configurations.
         """
         super().__init__(alloy_components)
         self.n_components = len(alloy_components)
@@ -105,6 +122,15 @@ class DSIModel(Alloy):
 
 
     def banner(self):
+        """
+        Prints a banner with the application name and version.
+
+        The banner includes a stylized text representation of the application name
+        and the current version number.
+
+        Returns:
+            None
+        """
         print("                                                ")
         print("   _      _                   _                 ")
         print("  | |__  | |  ___  _ __    __| | _ __   _   _   ")
@@ -119,7 +145,14 @@ class DSIModel(Alloy):
 
     def _create_supercells(self):
         """
-        Reads each file in alloy_components as an ASE Atoms object, applies the repeat (supercell) transformation, and stores the resulting supercell.
+        Creates supercells for each alloy component and appends them to the _supercells list.
+
+        This method reads the atomic structure from each file in the alloy_components list,
+        creates a supercell by repeating the atomic structure according to the supercell attribute,
+        and appends the resulting supercell to the _supercells list.
+
+        Returns:
+            None
         """
         for filename in self.alloy_components:
             # Read the structure from file (ASE infers file type automatically)
@@ -138,7 +171,14 @@ class DSIModel(Alloy):
 
     def _create_dilute_alloys(self):
         """
-        Creates and returns a list of diluted alloy supercells.
+        Create a matrix of dilute alloys from the provided supercells.
+        This method generates a matrix where each element is a supercell with the 
+        first atom's symbol replaced by the first atom's symbol of another supercell.
+        The resulting matrix has dimensions n x n, where n is the number of supercells.
+        Returns:
+            list: A 2D list (matrix) of supercells with diluted alloys.
+        Raises:
+            ValueError: If there are fewer than two supercells provided.
         """
         n = len(self._supercells)
         if n < 2:
@@ -183,6 +223,17 @@ class DSIModel(Alloy):
 
 
     def get_energy_matrix(self):
+        """
+        Computes and returns the energy matrix for the dilute alloys.
+
+        The energy matrix is a square matrix of size `n_components` x `n_components`,
+        where each element (i, j) represents the energy of the alloy at position (i, j)
+        in the `dilute_alloys` array.
+
+        Returns:
+            np.ndarray: A 2D numpy array of shape (n_components, n_components) containing
+                        the energy values of the dilute alloys.
+        """
         n  = self.n_components
         energy_matrix = np.zeros((n,n), dtype=float)
         for i, row in enumerate(self.dilute_alloys):
@@ -192,6 +243,18 @@ class DSIModel(Alloy):
 
 
     def get_diluting_parameters(self):
+        """
+        Calculate the diluting parameters for the given dilute alloys.
+
+        This method computes the diluting parameters matrix (m_dsi) for the dilute alloys
+        based on the energy differences between the alloys and their components.
+
+        Returns:
+            np.ndarray: A 2D numpy array containing the diluting parameters in kJ/mol.
+
+        Raises:
+            ValueError: If not all supercells have the same number of atoms.
+        """
         number_atoms_list = [ len(atoms) for row in self.dilute_alloys for atoms in row ]
         if len(set(number_atoms_list)) != 1:
             raise ValueError(f"Not all supercells have the same number of atoms: {number_atoms_list}.")
@@ -207,13 +270,39 @@ class DSIModel(Alloy):
 
 
     def get_enthalpy_of_mixing(self, A: int = 0, B: int = 1, npoints: int = 21, slope: list = [0,0]):
+        """
+        Calculate the enthalpy of mixing for a binary mixture.
+
+        Parameters:
+        A (int): Index of the first component in the mixture. (Default: 0)
+        B (int): Index of the second component in the mixture. (Default: 1)
+        npoints (int): Number of points to calculate along the molar fraction range. (Default: 21)
+        slope (list): List containing the slope values for the linear term in the enthalpy calculation. (Default: [0, 0])
+
+        Returns:
+        numpy.ndarray: Array of enthalpy values corresponding to the molar fraction range.
+        """
         x = np.linspace(0,1,npoints) # molar fraction
         m_dsi = self.get_diluting_parameters()
         enthalpy = m_dsi[A,B] * x * (1-x)**2 + m_dsi[B,A] * x**2 * (1-x) + (1-x) * slope[0] + x * slope[1]
         return enthalpy
 
 
-    def get_configurational_entropy(self, eps: float = 1.e-8, npoints: int = 21):
+    def get_configurational_entropy(self, eps: float = 1.e-4, npoints: int = 21):
+        """
+        Calculate the configurational entropy of a binary mixture.
+
+        Parameters:
+        eps (float): A small value to avoid division by zero in logarithm calculations. (Default: 1.e-4)
+        npoints (int): Number of points in the molar fraction range to calculate the entropy. (Default: 21)
+
+        Returns:
+        numpy.ndarray: Array of configurational entropy values for the given molar fraction range.
+
+        Notes:
+        - The gas constant R is used in kJ/(mol*K).
+        - The molar fraction x ranges from 0 to 1.
+        """
         R = 8.314/1000
         x = np.linspace(0,1,npoints) # molar fraction
         eps = eps
@@ -221,7 +310,30 @@ class DSIModel(Alloy):
         return entropy
 
 
-    def get_spinodal_decomposition(self, A: int = 0, B: int = 1, eps: float = 1.e-8, temperatures = np.arange(600, 2501, 5), npoints: int = 201):
+    def get_spinodal_decomposition(self, A: int = 0, B: int = 1, eps: float = 1.e-4, temperatures = np.arange(600, 2501, 5), npoints: int = 201):
+        """
+        Calculate the spinodal decomposition curve for a binary mixture.
+        Parameters:
+        -----------
+        A : int, optional
+            Index of the first component in the mixture (Default: 0).
+        B : int, optional
+            Index of the second component in the mixture (Default: 1).
+        eps : float, optional
+            Small value to avoid division by zero in entropy calculation (Default: 1.e-4).
+        temperatures : array-like, optional
+            Array of temperatures at which to calculate the spinodal decomposition (Default: np.arange(600, 2501, 5)).
+        npoints : int, optional
+            Number of points to use in the calculation (Default: 201).
+        Returns:
+        --------
+        df_spinodal : pandas.DataFrame
+            DataFrame containing the spinodal decomposition curve with columns "x" (molar fraction) and "t" (temperature).
+        Notes:
+        ------
+        The function calculates the Gibbs free energy as a function of temperature and molar fraction, and then determines
+        the spinodal points where the second derivative of the Gibbs free energy with respect to molar fraction changes sign.
+        """
         A = A
         B = B
         eps = eps
@@ -283,6 +395,15 @@ class Polymorph(Atoms):
 
     
     def get_energies(self):
+        """
+        Calculate and return the potential energies of polymorphs.
+        This method iterates over the polymorphs, calculates the potential energy
+        for each set of atoms, stores the energy in the atoms' info dictionary,
+        and appends the energy to a list.
+        Returns:
+            list: A list of potential energies for each set of atoms in polymorphs.
+        """
+
         energies = []
         for atoms in self.polymorphs:
             energy = atoms.get_potential_energy()

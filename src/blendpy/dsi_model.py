@@ -94,7 +94,7 @@ class DSIModel(Alloy):
         print("  |_.__/ |_| \\___||_| |_| \\__,_|| .__/  \\__, |  ")
         print("                                |_|     |___/   ")
         print("                                                ")
-        print(f"                 version: {version}                 ")
+        print(f"                 version: {__version__}                 ")
         print("                                                ")
 
 

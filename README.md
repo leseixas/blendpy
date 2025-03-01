@@ -62,7 +62,6 @@ Save the optimized unit cells to CIF files:
 # Save the optimized unit cells for Au and Pt
 write("Au.cif", gold)
 write("Pt.cif", platinum)
-
 ```
 
 Now, import the `DSIModel` from blendpy and create a `DSIModel` object using the optimized structures:
@@ -180,7 +179,7 @@ plt.show()
 ```
 
 <p align="center">
-<img src="https://raw.githubusercontent.com/leseixas/blendpy/refs/heads/main/figs/phase_diagram.png" style="height: 400px"></p>
+<img src="https://raw.githubusercontent.com/leseixas/blendpy/refs/heads/main/figs/phase_diagram.png" style="height: 500px"></p>
 
 <p align="center"><a name="fig1">Figure 2</a> - Phase diagram of the Au–Pt alloy computed using the DSI model and MACE interatomic potentials.</p>
 

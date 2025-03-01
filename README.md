@@ -180,7 +180,7 @@ plt.show()
 ```
 
 <p align="center">
-<img src="https://raw.githubusercontent.com/leseixas/blendpy/refs/heads/main/figs/aupt_enthalpy_of_mixing.png" style="height: 400px"></p>
+<img src="https://raw.githubusercontent.com/leseixas/blendpy/refs/heads/main/figs/phase_diagram.png" style="height: 400px"></p>
 
 <p align="center"><a name="fig1">Figure 2</a> - Phase diagram of the Au–Pt alloy computed using the DSI model and MACE interatomic potentials.</p>
 

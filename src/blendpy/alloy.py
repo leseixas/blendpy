@@ -62,9 +62,16 @@ class Alloy(Atoms):
 
     def _store_chemical_elements(self):
         """
-        For each supercell, retrieve the chemical symbols using the 
-        inherited get_chemical_symbols method, convert them to a set 
-        to list unique elements, and store them in _chemical_elements.
+        Reads chemical elements from files and stores them in the instance variable.
+        This method iterates over the filenames stored in `self.alloy_components`, reads the atomic
+        structure from each file, extracts the chemical symbols of the atoms, and appends these symbols
+        to the instance variable `self._chemical_elements`.
+        Note:
+            This method assumes that the filenames in `self.alloy_components` can be read using the `read`
+            function, which returns an object with a `get_chemical_symbols` method.
+        Raises:
+            Any exceptions raised by the `read` function or the `get_chemical_symbols` method will propagate
+            up to the caller.
         """
         for filename in self.alloy_components:
             atoms = read(filename)
@@ -74,6 +81,8 @@ class Alloy(Atoms):
 
     def get_chemical_elements(self):
         """
-        Returns the list of unique chemical elements (as sets) for each file.
+        Retrieve the set of chemical elements present in the alloy.
+        Returns:
+            set: A set containing the chemical elements.
         """
         return set(self._chemical_elements)

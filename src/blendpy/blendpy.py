@@ -38,6 +38,8 @@ from ase import Atoms
 from ase.optimize import BFGS, BFGSLineSearch, CellAwareBFGS, MDMin, FIRE, FIRE2, GPMin, LBFGS, LBFGSLineSearch, ODE12r, GoodOldQuasiNewton
 from ase.filters import UnitCellFilter
 from .alloy import Alloy
+from .polymorph import Polymorph
+
 
 
 class DSIModel(Alloy):
@@ -333,74 +335,6 @@ class DSIModel(Alloy):
     # TODO
     def get_phase_diagram(self):
         pass
-
-
-
-class Polymorph(Atoms):
-    def __init__(self, alpha: str, beta: str, calculator = None):
-        """
-        Initializes the Polymorph object.
-        """
-        super().__init__()
-        self.alpha = read(alpha)
-        self.beta = read(beta)
-        if calculator is None:
-            raise ValueError("Polymorph object need to have a calculator.")
-        self.calculator = calculator
-        self.polymorphs = [self.alpha, self.beta]
-        for atoms in self.polymorphs:
-            atoms.calc = self.calculator
-
-    
-    def get_energies(self):
-        """
-        Calculate and return the potential energies of polymorphs.
-        This method iterates over the polymorphs, calculates the potential energy
-        for each set of atoms, stores the energy in the atoms' info dictionary,
-        and appends the energy to a list.
-        Returns:
-            list: A list of potential energies for each set of atoms in polymorphs.
-        """
-
-        energies = []
-        for atoms in self.polymorphs:
-            energy = atoms.get_potential_energy()
-            atoms.info['energy'] = energy
-            energies.append(energy)
-        return energies
-
-
-    def optimize(self, method=BFGSLineSearch, fmax: float = 0.01, steps: int = 500, logfile: str = 'optimization.log', mask: list = [1,1,1,1,1,1]):
-        """
-        Atoms objects are optimized according to the specified optimization method and parameters.
-        
-        Parameters:
-            method (class): The method to optimize the Atoms object. (Default: BFGSLineSearch)
-            fmax (float): The maximum force criteria. (Default: 0.01 eV/ang)
-            steps (int): The maximum number of optimization steps. (Default: 500)
-            logfile (string): Specifies the file name where the computed optimization forces will be recorded. (Default: 'optimization.log')
-            mask (list): A list of directions and angles in Voigt notation that can be optimized.
-                        A value of 1 enables optimization, while a value of 0 fixes it. (Default: [1,1,1,1,1,1])
-        """
-        for atoms in self.polymorphs:
-            ucf = UnitCellFilter(atoms, mask=mask)
-            optimizer = method(ucf, logfile=logfile)
-            optimizer.run(fmax=fmax, steps=steps)
-            energy = atoms.get_potential_energy()
-            atoms.info['energy'] = energy            
-
-
-    def get_structural_energy_transition(self):
-        '''
-        Calculates and returns the difference between the energies (in kJ/mol) of the alpha and beta phases, in the form:
-            delta_energy = energy(beta) - energy(alpha)
-        '''
-        energy_alpha = self.alpha.info['energy']
-        energy_beta = self.beta.info['energy']
-        num_atoms_alpha = len(self.alpha)
-        num_atoms_beta = len(self.beta)
-        delta_energy = energy_beta/num_atoms_beta - energy_alpha/num_atoms_alpha
-        return delta_energy * (96.4853321233100184) # converting value to kJ/mol
 
 
 

@@ -2,19 +2,19 @@
 <img src="https://raw.githubusercontent.com/leseixas/blendpy/refs/heads/main/logo.png" style="height: 70px"></h1>
 
 [![License: MIT](https://img.shields.io/github/license/leseixas/blendpy?color=green&style=for-the-badge)](LICENSE)    [![PyPI](https://img.shields.io/pypi/v/blendpy?color=red&style=for-the-badge)](https://pypi.org/project/blendpy/)
-![GitHub Downloads (all assets, all releases)](https://img.shields.io/github/downloads/leseixas/blendpy/total?style=for-the-badge&logo=github&label=github&color=blue)
+<!-- ![GitHub Downloads (all assets, all releases)](https://img.shields.io/github/downloads/leseixas/blendpy/total?style=for-the-badge&logo=github&label=github&color=blue) -->
 
 
 **Blendpy** uses atomistic simulations with ASE calculators to compute alloy properties like enthalpy of mixing. It supports binary and multicomponent systems, including alloys and pseudoalloys.
 
-# Installation
+## Installation
 
 Install blendpy easily using pip, Python’s package manager:
 ```bash
 $ pip install blendpy
 ```
 
-# Getting started
+## Getting started
 
 First, import the necessary modules from ASE and MACE:
 ```python
@@ -127,7 +127,7 @@ plt.show()
 <p align="center"><a name="fig1">Figure 1</a> - Enthalpy of mixing of the Au-Pt alloy computed using the DSI model and MACE interatomic potentials.</p>
 
 
-# Phase diagram
+## Phase diagram
 
 By analyzing the mixing enthalpies and entropies, we can calculate the Gibbs free energy of the Au–Pt alloy mixture and determine both the spinodal and binodal (solvus) decomposition curves. These curves, which form key features of the alloy's phase diagram, delineate regions of differing stability: below the binodal curve, the solid solution (Au, Pt) is metastable, whereas it becomes unstable beneath the spinodal curve.
 
@@ -192,7 +192,7 @@ plt.show()
 <p align="center"><a name="fig1">Figure 2</a> - Phase diagram of the Au–Pt alloy computed using the DSI model and MACE interatomic potentials.</p>
 
 
-# Enthalpy of mixing with polymorphism
+## Enthalpy of mixing with polymorphism
 
 ```python
 
@@ -200,10 +200,10 @@ plt.show()
 
 ```
 
-# License
+## License
 
 This is an open source code under [MIT License](LICENSE).
 
-# Acknowledgements
+## Acknowledgements
 
 We thank financial support from FAPESP [(Grant No. 2022/14549-3)](https://bvs.fapesp.br/pt/auxilios/111791/materiais-de-alta-entropia-inteligiveis-desenvolvendo-modelos-dados-e-aplicacoes/), INCT Materials Informatics (Grant No. 406447/2022-5), and CNPq (Grant No. 311324/2020-7).

@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "blendpy"
-version = "25.3.13"
+version = "25.3.14"
 authors = [
   { name="Leandro Seixas", email="leandro.fisica@gmail.com" },
 ]

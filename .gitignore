@@ -174,7 +174,3 @@ cython_debug/
 
 #MacOS file
 .DS_Store
-
-# in test dir
-*.csv
-*.vasp

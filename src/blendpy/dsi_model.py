@@ -74,11 +74,12 @@ class DSIModel(Alloy):
         self.supercell = supercell
         print("Supercell dimensions:", self.supercell)
         self._supercells = []         # To store the supercell Atoms objects
+        self.doping_site = doping_site
+        print("Doping site:", self.doping_site)
         self._create_supercells()
         self.dilute_alloys = self._create_dilute_alloys()
         self.diluting_parameters = diluting_parameters
-        self.doping_site = doping_site
-        print("Doping site:", self.doping_site)
+
 
         # If a calculator is provided, attach it to each Atoms object.
         if calculator is not None:
@@ -135,7 +136,8 @@ class DSIModel(Alloy):
         if n < 2:
             raise ValueError("Need at least two elements to create an alloy.")
         
-        dopant = [atoms.get_chemical_symbols()[self.doping_site] for atoms in self._supercells]
+        doping_site = self.doping_site
+        dopant = [atoms.get_chemical_symbols()[doping_site] for atoms in self._supercells]
         print("Dopant atoms:", dopant)
 
         list_alloys = []
@@ -146,7 +148,7 @@ class DSIModel(Alloy):
             for j in range(n):
                 # Copy the base supercell from index i.
                 new_atoms = self._supercells[i].copy()
-                new_atoms[self.doping_site].symbol = dopant[j]
+                new_atoms[doping_site].symbol = dopant[j]
                 list_alloys.append(new_atoms.get_chemical_formula())
                 dilute_matrix_row.append(new_atoms)
             dilute_supercells_matrix.append(dilute_matrix_row)

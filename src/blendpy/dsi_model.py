@@ -35,6 +35,9 @@ from ase.atoms import Atoms
 from ase.optimize import BFGS, BFGSLineSearch, LBFGS, LBFGSLineSearch, MDMin, GPMin, FIRE, FIRE2, ODE12r, GoodOldQuasiNewton
 from ase.filters import UnitCellFilter
 
+import warnings
+warnings.filterwarnings("ignore")
+
 from .alloy import Alloy
 
 
@@ -161,7 +164,7 @@ class DSIModel(Alloy):
                  method=BFGSLineSearch,
                  fmax: float = 0.01,
                  steps: int = 500,
-                 logfile: str = 'optimization.log',
+                 logfile: str = 'optimize.log',
                  mask: list = [1,1,1,1,1,1]):
         """
         Atoms objects are optimized according to the specified optimization method and parameters.
@@ -170,14 +173,14 @@ class DSIModel(Alloy):
             method (class): The method to optimize the Atoms object (Default: BFGSLineSearch).
             fmax (float): The maximum force criteria (Default: 0.01 eV/ang).
             steps (int): The maximum number of optimization steps (Default: 500).
-            logfile (string): Specifies the file name where the computed optimization forces will be recorded (Default: 'optimization.log').
+            logfile (string): Specifies the file name where the computed optimization forces will be recorded (Default: 'optimize.log').
             mask (list): A list of directions and angles in Voigt notation that can be optimized.
                          A value of 1 enables optimization, while a value of 0 fixes it. (Default: [1,1,1,1,1,1])
         """
         print("-----------------------------------------------")
         print("\033[36mDilute alloys optimization\033[0m")
         print("-----------------------------------------------")
-        print("Optimization method:", method)
+        print("Optimization method:", method.__name__)
         print("Maximum force criteria:", fmax, "eV/ang")
         print("Maximum number of steps:", steps)
         print("Logfile:", logfile)
@@ -261,7 +264,7 @@ class DSIModel(Alloy):
         Returns:
         numpy.ndarray: Array of enthalpy values corresponding to the molar fraction range.
         """
-        x = np.linspace(0, 1, npoints) # molar fraction
+        x = np.linspace(0, 1, npoints)
         if self.diluting_parameters is None:
             m_dsi = self.get_diluting_parameters()
         else:
@@ -282,7 +285,7 @@ class DSIModel(Alloy):
         Returns:
         numpy.ndarray: Array of configurational entropy values for the given molar fraction range.
         """
-        x = np.linspace(0,1,npoints) # molar fraction
+        x = np.linspace(0,1,npoints)
         entropy = - R * ( (1-x-eps)*np.log(1-(x-eps)) + (x+eps)*np.log(x+eps) )
         return entropy
 
@@ -340,10 +343,10 @@ class DSIModel(Alloy):
         spinodal = []
         for t in temperatures:
             gibbs = enthalpy - t * entropy
-            dx = 1/npoints
+            dx = 1/(npoints-1)
             diff_gibbs = np.gradient(gibbs, dx)
             diff2_gibbs = np.gradient(diff_gibbs, dx)
-            idx = np.argwhere(np.diff(np.sign(diff2_gibbs))).flatten() # tirei o -np.zeros(npoints) de dentro do np.sign
+            idx = np.argwhere(np.diff(np.sign(diff2_gibbs))).flatten()
             data = [t, x[idx]]
             flattened_array = np.concatenate([np.atleast_1d(item) for item in data])
             spinodal.append(flattened_array)

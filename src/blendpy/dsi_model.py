@@ -61,7 +61,6 @@ class DSIModel(Alloy):
 
         Methods:
         --------
-        banner(): Display the initial banner for blendpy.
         _create_supercells(): Create supercell configurations.
         _create_dilute_alloys(): Create dilute alloy configurations.
         """
@@ -72,9 +71,6 @@ class DSIModel(Alloy):
         self._create_supercells()
         self.dilute_alloys = self._create_dilute_alloys()
 
-        # Show blendpy initial banner
-        self.banner()
-
         # If a calculator is provided, attach it to each Atoms object.
         if calculator is not None:
             for row in self.dilute_alloys:
@@ -82,20 +78,6 @@ class DSIModel(Alloy):
                     atoms.calc = calculator
                     energy = atoms.get_potential_energy()
                     atoms.info['energy'] = energy
-
-
-    # def banner(self):
-    #     print("                                                ")
-    #     print("\033[36m   _      _                   _                 \033[0m")
-    #     print("\033[36m  | |__  | |  ___  _ __    __| | _ __   _   _   \033[0m")
-    #     print("\033[36m  | '_ \\ | | / _ \\| '_ \\  / _` || '_ \\ | | | |  \033[0m")
-    #     print("\033[36m  | |_) || ||  __/| | | || (_| || |_) || |_| |  \033[0m")
-    #     print("\033[36m  |_.__/ |_| \\___||_| |_| \\__,_|| .__/  \\__, |  \033[0m")
-    #     print("\033[36m                                |_|     |___/   \033[0m")
-    #     print("\033[36m                                                \033[0m")
-    #     print(f"                 version: {__version__}                 ")
-    #     print("                                                ")
-
 
     def _create_supercells(self):
         """

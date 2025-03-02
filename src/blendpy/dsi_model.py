@@ -42,7 +42,7 @@ from .alloy import Alloy
 R = 8.314462618 / 1000  # Gas constant in kJ/(mol*K)
 
 class DSIModel(Alloy):
-    def __init__(self, alloy_components: list, supercell: list = [1,1,1], calculator = None, diluting_parameters = None):
+    def __init__(self, alloy_components: list, supercell: list = [1,1,1], calculator = None, diluting_parameters = None, doping_site: int = 0):
         """
         Initialize the DSIModel class with alloy components, supercell dimensions, and an optional calculator.
 
@@ -51,6 +51,7 @@ class DSIModel(Alloy):
         alloy_components (list): List of alloy components.
         supercell (list, optional): Dimensions of the supercell (Default: [1, 1, 1]).
         calculator (optional): Calculator to attach to each Atoms object (Default: None).
+        doping_site (int, optional): Index of the doping site in the supercell (Default: 0).
 
         Attributes:
         ----------
@@ -76,6 +77,8 @@ class DSIModel(Alloy):
         self._create_supercells()
         self.dilute_alloys = self._create_dilute_alloys()
         self.diluting_parameters = diluting_parameters
+        self.doping_site = doping_site
+        print("Doping site:", self.doping_site)
 
         # If a calculator is provided, attach it to each Atoms object.
         if calculator is not None:
@@ -132,7 +135,7 @@ class DSIModel(Alloy):
         if n < 2:
             raise ValueError("Need at least two elements to create an alloy.")
         
-        dopant = [atoms.get_chemical_symbols()[0] for atoms in self._supercells]
+        dopant = [atoms.get_chemical_symbols()[self.doping_site] for atoms in self._supercells]
         print("Dopant atoms:", dopant)
 
         list_alloys = []
@@ -143,8 +146,7 @@ class DSIModel(Alloy):
             for j in range(n):
                 # Copy the base supercell from index i.
                 new_atoms = self._supercells[i].copy()
-                # Replace the first atom's symbol with the first symbol from supercell j.
-                new_atoms[0].symbol = dopant[j]
+                new_atoms[self.doping_site].symbol = dopant[j]
                 list_alloys.append(new_atoms.get_chemical_formula())
                 dilute_matrix_row.append(new_atoms)
             dilute_supercells_matrix.append(dilute_matrix_row)

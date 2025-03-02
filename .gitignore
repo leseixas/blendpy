@@ -174,3 +174,7 @@ cython_debug/
 
 #MacOS file
 .DS_Store
+
+# Notebooks for test
+notebooks/
+*.ipynb

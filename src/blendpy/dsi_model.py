@@ -78,7 +78,12 @@ class DSIModel(Alloy):
                     atoms.calc = calculator
                     energy = atoms.get_potential_energy()
                     atoms.info['energy'] = energy
-
+        
+        print("\033[36mDSI Model initialized.\033[0m")
+        print("Number of components:", self.n_components)
+        print("Supercell dimensions:", self.supercell)
+        
+        
     def _create_supercells(self):
         """
         Creates supercells for each alloy component and appends them to the _supercells list.
@@ -126,7 +131,9 @@ class DSIModel(Alloy):
             raise ValueError("Need at least two elements to create an alloy.")
         
         dopant = [atoms.get_chemical_symbols()[0] for atoms in self._supercells]
+        print("Dopant atoms:", dopant)
 
+        list_alloys = []
         # Iterate over all pairs (i, j)
         dilute_supercells_matrix = []
         for i in range(n):
@@ -136,9 +143,11 @@ class DSIModel(Alloy):
                 new_atoms = self._supercells[i].copy()
                 # Replace the first atom's symbol with the first symbol from supercell j.
                 new_atoms[0].symbol = dopant[j]
+                list_alloys.append(new_atoms.get_chemical_symbols())
                 dilute_matrix_row.append(new_atoms)
             dilute_supercells_matrix.append(dilute_matrix_row)
-        
+
+        print("List dilute alloys:", list_alloys)
         return dilute_supercells_matrix
 
 
@@ -159,6 +168,13 @@ class DSIModel(Alloy):
             mask (list): A list of directions and angles in Voigt notation that can be optimized.
                          A value of 1 enables optimization, while a value of 0 fixes it. (Default: [1,1,1,1,1,1])
         """
+        print("\033[36mOptimizing dilute alloys...\033[0m")
+        print("Optimization method:", method)
+        print("Maximum force criteria:", fmax, "eV/ang")
+        print("Maximum number of steps:", steps)
+        print("Logfile:", logfile)
+        print("Mask:", mask)
+
         for row in self.dilute_alloys:
             for atoms in row:
                 ucf = UnitCellFilter(atoms, mask=mask)
@@ -166,6 +182,8 @@ class DSIModel(Alloy):
                 optimizer.run(fmax=fmax, steps=steps)
                 energy = atoms.get_potential_energy()
                 atoms.info['energy'] = energy
+
+        
 
 
     def get_energy_matrix(self):
@@ -212,8 +230,13 @@ class DSIModel(Alloy):
         for i, row in enumerate(self.dilute_alloys):
             for j in range(len(row)):
                 m_dsi[i,j] = energy[i,j] - ((1-x)*energy[i,i] + x * energy[j,j])
-        return m_dsi * (96.4853321233100184) # converting value to kJ/mol
 
+        m_dsi_kjmol = m_dsi * (96.4853321233100184) # converting value to kJ/mol
+        
+        print("Diluting parameters matrix (M_DSI) in kJ/mol:")
+        print(m_dsi_kjmol)
+
+        return m_dsi_kjmol
 
     def get_enthalpy_of_mixing(self, A: int = 0, B: int = 1, slope: list = [0,0], npoints: int = 101):
         """
@@ -285,6 +308,15 @@ class DSIModel(Alloy):
         The function calculates the Gibbs free energy as a function of temperature and molar fraction, and then determines
         the spinodal points where the second derivative of the Gibbs free energy with respect to molar fraction changes sign.
         """
+
+        print("\033[36mCalculating spinodal decomposition...\033[0m")
+        print("Temperature range:", temperatures)
+        print("Component A:", A)
+        print("Component B:", B)
+        print("Slope parameters:", slope)
+        print("Epsilon:", eps)
+        print("Number of points:", npoints)
+
         x = np.linspace(0,1,npoints) # molar fraction
 
         enthalpy = self.get_enthalpy_of_mixing(A, B, slope, npoints)
@@ -309,6 +341,7 @@ class DSIModel(Alloy):
         reversed_df2 = df2.iloc[::-1].reset_index(drop=True)
         df_result = pd.concat([df1, reversed_df2], axis=0, ignore_index=True)
         df_spinodal = df_result.dropna()
+
         return df_spinodal
 
 
@@ -528,6 +561,13 @@ class DSIModel(Alloy):
         pd.DataFrame
             DataFrame containing the binodal curve with columns 'x' and 't', where 'x' is the composition and 't' is the temperature.
         """
+        print("\033[36mCalculating binodal curve...\033[0m")
+        print("Temperature range:", temperatures)
+        print("Component A:", A)
+        print("Component B:", B)
+        print("Slope parameters:", slope)
+        print("Epsilon (eps):", eps)
+        print("Number of points:", npoints)
         
         # Compute the miscibility gap for each temperature.
         binodal_data = [self._miscibility_gap(T, A, B, slope, eps, npoints) for T in temperatures]
@@ -544,4 +584,5 @@ class DSIModel(Alloy):
         
         # Concatenate to form the complete solvus curve.
         df_binodal = pd.concat([df_lower, df_upper], ignore_index=True)
+        
         return df_binodal

@@ -29,6 +29,11 @@ from .alloy import Alloy
 from .dsi_model import DSIModel
 from .polymorph import Polymorph
 
+from sys import version as __python_version__
+from ase import __version__ as __ase_version__
+from numpy import __version__ as __numpy_version__
+from pandas import __version__ as __pandas_version__
+
 __all__ = ['Alloy', 'DSIModel', 'Polymorph']
 
 print("                                                ")
@@ -41,3 +46,13 @@ print("\033[36m                                |_|     |___/   \033[0m")
 print("\033[36m                                                \033[0m")
 print(f"                 version: {__version__}                 ")
 print("                                                ")
+
+print("-----------------------------------------------")
+print(f"python version: {__python_version__}")
+print("                                               ")
+
+print("-----------------------------------------------")
+print("Dependencies:")
+print(f"ase version: {__ase_version__}")
+print(f"numpy version: {__numpy_version__}")
+print(f"pandas version: {__pandas_version__}")

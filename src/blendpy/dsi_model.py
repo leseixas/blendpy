@@ -42,7 +42,7 @@ from .alloy import Alloy
 R = 8.314462618 / 1000  # Gas constant in kJ/(mol*K)
 
 class DSIModel(Alloy):
-    def __init__(self, alloy_components: list, supercell: list = [1,1,1], calculator = None):
+    def __init__(self, alloy_components: list, supercell: list = [1,1,1], calculator = None, diluting_parameters = None):
         """
         Initialize the DSIModel class with alloy components, supercell dimensions, and an optional calculator.
 
@@ -64,12 +64,17 @@ class DSIModel(Alloy):
         _create_supercells(): Create supercell configurations.
         _create_dilute_alloys(): Create dilute alloy configurations.
         """
+        print("\033[36mDSI Model initialized.\033[0m")
+        print("-----------------------------------------------")
         super().__init__(alloy_components)
         self.n_components = len(alloy_components)
+        print("Number of components:", self.n_components)
         self.supercell = supercell
+        print("Supercell dimensions:", self.supercell)
         self._supercells = []         # To store the supercell Atoms objects
         self._create_supercells()
         self.dilute_alloys = self._create_dilute_alloys()
+        self.diluting_parameters = diluting_parameters
 
         # If a calculator is provided, attach it to each Atoms object.
         if calculator is not None:
@@ -78,10 +83,6 @@ class DSIModel(Alloy):
                     atoms.calc = calculator
                     energy = atoms.get_potential_energy()
                     atoms.info['energy'] = energy
-        
-        print("\033[36mDSI Model initialized.\033[0m")
-        print("Number of components:", self.n_components)
-        print("Supercell dimensions:", self.supercell)
         
         
     def _create_supercells(self):
@@ -143,7 +144,7 @@ class DSIModel(Alloy):
                 new_atoms = self._supercells[i].copy()
                 # Replace the first atom's symbol with the first symbol from supercell j.
                 new_atoms[0].symbol = dopant[j]
-                list_alloys.append(new_atoms.get_chemical_symbols())
+                list_alloys.append(new_atoms.get_chemical_formula())
                 dilute_matrix_row.append(new_atoms)
             dilute_supercells_matrix.append(dilute_matrix_row)
 
@@ -183,9 +184,7 @@ class DSIModel(Alloy):
                 energy = atoms.get_potential_energy()
                 atoms.info['energy'] = energy
 
-        
-
-
+    
     def get_energy_matrix(self):
         """
         Computes and returns the energy matrix for the dilute alloys.
@@ -236,6 +235,8 @@ class DSIModel(Alloy):
         print("Diluting parameters matrix (M_DSI) in kJ/mol:")
         print(m_dsi_kjmol)
 
+        self.diluting_parameters = m_dsi_kjmol
+
         return m_dsi_kjmol
 
     def get_enthalpy_of_mixing(self, A: int = 0, B: int = 1, slope: list = [0,0], npoints: int = 101):
@@ -252,7 +253,11 @@ class DSIModel(Alloy):
         numpy.ndarray: Array of enthalpy values corresponding to the molar fraction range.
         """
         x = np.linspace(0, 1, npoints) # molar fraction
-        m_dsi = self.get_diluting_parameters()
+        if self.diluting_parameters is None:
+            m_dsi = self.get_diluting_parameters()
+        else:
+            m_dsi = self.diluting_parameters
+            
         enthalpy = m_dsi[A,B] * x * (1-x)**2 + m_dsi[B,A] * x**2 * (1-x) + (1-x) * slope[0] + x * slope[1]
         return enthalpy
 

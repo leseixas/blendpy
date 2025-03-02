@@ -37,8 +37,21 @@ from ase.constraints import UnitCellFilter
 class Polymorph(Atoms):
     def __init__(self, alpha: str, beta: str, calculator = None):
         """
-        Initializes the Polymorph object.
+        Initialize a Polymorph object.
+        Parameters:
+        alpha (str): The file path to the alpha polymorph structure.
+        beta (str): The file path to the beta polymorph structure.
+        calculator: An optional calculator object to be used for calculations. 
+                    If not provided, a ValueError will be raised.
+        Raises:
+        ValueError: If the calculator is not provided.
+        Attributes:
+        alpha: The alpha polymorph structure read from the provided file path.
+        beta: The beta polymorph structure read from the provided file path.
+        calculator: The calculator object used for calculations.
+        polymorphs: A list containing the alpha and beta polymorph structures.
         """
+
         super().__init__()
         self.alpha = read(alpha)
         self.beta = read(beta)
@@ -68,31 +81,49 @@ class Polymorph(Atoms):
         return energies
 
 
-    def optimize(self, method=BFGSLineSearch, fmax: float = 0.01, steps: int = 500, logfile: str = 'optimization.log', mask: list = [1,1,1,1,1,1]):
+    def optimize(self,
+                 method=BFGSLineSearch,
+                 fmax: float = 0.01,
+                 steps: int = 500,
+                 logfile: str = 'optimization.log',
+                 mask: list = [1,1,1,1,1,1]):
         """
         Atoms objects are optimized according to the specified optimization method and parameters.
         
         Parameters:
-            method (class): The method to optimize the Atoms object. (Default: BFGSLineSearch)
-            fmax (float): The maximum force criteria. (Default: 0.01 eV/ang)
-            steps (int): The maximum number of optimization steps. (Default: 500)
-            logfile (string): Specifies the file name where the computed optimization forces will be recorded. (Default: 'optimization.log')
+            method (class): The method to optimize the Atoms object (Default: BFGSLineSearch).
+            fmax (float): The maximum force criteria (Default: 0.01 eV/ang).
+            steps (int): The maximum number of optimization steps (Default: 500).
+            logfile (string): Specifies the file name where the computed optimization forces will be recorded (Default: 'optimize.log').
             mask (list): A list of directions and angles in Voigt notation that can be optimized.
-                        A value of 1 enables optimization, while a value of 0 fixes it. (Default: [1,1,1,1,1,1])
+                         A value of 1 enables optimization, while a value of 0 fixes it. (Default: [1,1,1,1,1,1])
         """
+        print("-----------------------------------------------")
+        print("\033[36mDilute alloys optimization\033[0m")
+        print("-----------------------------------------------")
+        print("    Optimization method:", method.__name__)
+        print("    Maximum force criteria:", fmax, "eV/ang")
+        print("    Maximum number of steps:", steps)
+        print("    Logfile:", logfile)
+        print("    Mask:", mask)
+
         for atoms in self.polymorphs:
             ucf = UnitCellFilter(atoms, mask=mask)
             optimizer = method(ucf, logfile=logfile)
             optimizer.run(fmax=fmax, steps=steps)
-            energy = atoms.get_potential_energy()
-            atoms.info['energy'] = energy            
+            atoms.info['energy'] = atoms.get_potential_energy()
 
 
     def get_structural_energy_transition(self):
-        '''
-        Calculates and returns the difference between the energies (in kJ/mol) of the alpha and beta phases, in the form:
-            delta_energy = energy(beta) - energy(alpha)
-        '''
+        """
+        Calculates and returns the difference in structural energy between the alpha and beta phases.
+        This method computes the energy difference (in kJ/mol) between the beta and alpha phases of a structure.
+        The energy difference is calculated as:
+            delta_energy = (energy(beta) / num_atoms(beta)) - (energy(alpha) / num_atoms(alpha))
+        The result is then converted to kJ/mol.
+        Returns:
+            float: The energy difference between the beta and alpha phases in kJ/mol.
+        """
         energy_alpha = self.alpha.info['energy']
         energy_beta = self.beta.info['energy']
         num_atoms_alpha = len(self.alpha)

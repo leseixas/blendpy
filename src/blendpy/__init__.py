@@ -24,6 +24,9 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
+import warnings
+warnings.filterwarnings("ignore")
+
 from ._version import __version__
 from .alloy import Alloy
 from .dsi_model import DSIModel
@@ -51,7 +54,7 @@ print(f"\033[36m    version:\033[0m {__version__}                             ")
 print("                                                  ")
 print("-----------------------------------------------")
 print("                                               ")
-print(f"    \033[36mpython version:\033[0m {__python_version__}      ")
+print(f"\033[36mpython version:\033[0m {__python_version__}      ")
 print("                                               ")
 print("Dependencies:")
 print(f"    \033[36mase version:\033[0m {__ase_version__}")

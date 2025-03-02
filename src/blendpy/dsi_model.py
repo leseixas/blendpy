@@ -35,11 +35,7 @@ from ase.atoms import Atoms
 from ase.optimize import BFGS, BFGSLineSearch, LBFGS, LBFGSLineSearch, MDMin, GPMin, FIRE, FIRE2, ODE12r, GoodOldQuasiNewton
 from ase.filters import UnitCellFilter
 
-import warnings
-warnings.filterwarnings("ignore")
-
 from .alloy import Alloy
-
 
 # Constants
 R = 8.314462618 / 1000  # Gas constant in kJ/(mol*K)
@@ -73,12 +69,12 @@ class DSIModel(Alloy):
         print("-----------------------------------------------")
         super().__init__(alloy_components)
         self.n_components = len(alloy_components)
-        print("Number of components:", self.n_components)
+        print("    Number of components:", self.n_components)
         self.supercell = supercell
-        print("Supercell dimensions:", self.supercell)
+        print("    Supercell dimensions:", self.supercell)
         self._supercells = []         # To store the supercell Atoms objects
         self.doping_site = doping_site
-        print("Doping site:", self.doping_site)
+        print("    Doping site:", self.doping_site)
         self._create_supercells()
         self.dilute_alloys = self._create_dilute_alloys()
         self.diluting_parameters = diluting_parameters
@@ -141,7 +137,7 @@ class DSIModel(Alloy):
         
         doping_site = self.doping_site
         dopant = [atoms.get_chemical_symbols()[doping_site] for atoms in self._supercells]
-        print("Dopant atoms:", dopant)
+        print("    Dopant atoms:", dopant)
 
         list_alloys = []
         # Iterate over all pairs (i, j)
@@ -156,7 +152,7 @@ class DSIModel(Alloy):
                 dilute_matrix_row.append(new_atoms)
             dilute_supercells_matrix.append(dilute_matrix_row)
 
-        print("Listing dilute alloys:", list_alloys)
+        print("    Listing dilute alloys:", list_alloys)
         return dilute_supercells_matrix
 
 
@@ -180,19 +176,18 @@ class DSIModel(Alloy):
         print("-----------------------------------------------")
         print("\033[36mDilute alloys optimization\033[0m")
         print("-----------------------------------------------")
-        print("Optimization method:", method.__name__)
-        print("Maximum force criteria:", fmax, "eV/ang")
-        print("Maximum number of steps:", steps)
-        print("Logfile:", logfile)
-        print("Mask:", mask)
+        print("    Optimization method:", method.__name__)
+        print("    Maximum force criteria:", fmax, "eV/ang")
+        print("    Maximum number of steps:", steps)
+        print("    Logfile:", logfile)
+        print("    Mask:", mask)
 
         for row in self.dilute_alloys:
             for atoms in row:
                 ucf = UnitCellFilter(atoms, mask=mask)
                 optimizer = method(ucf, logfile=logfile)
                 optimizer.run(fmax=fmax, steps=steps)
-                energy = atoms.get_potential_energy()
-                atoms.info['energy'] = energy
+                atoms.info['energy'] = atoms.get_potential_energy()
 
     
     def get_energy_matrix(self):
@@ -328,12 +323,12 @@ class DSIModel(Alloy):
         print("-----------------------------------------------")
         print("\033[36mSpinodal curve\033[0m")
         print("-----------------------------------------------")
-        print(f"Temperature range: From {temperatures[0]} to {temperatures[-1]}, with step {temperatures[1]-temperatures[0]}")
-        print("Component A:", A)
-        print("Component B:", B)
-        print("Slope parameters:", slope)
-        print("Epsilon:", eps)
-        print("Number of points:", npoints)
+        print(f"    Temperature range: From {temperatures[0]} to {temperatures[-1]}, with step {temperatures[1]-temperatures[0]}")
+        print("    Component A:", A)
+        print("    Component B:", B)
+        print("    Slope parameters:", slope)
+        print("    Epsilon:", eps)
+        print("    Number of points:", npoints)
 
         x = np.linspace(0,1,npoints) # molar fraction
 
@@ -361,7 +356,7 @@ class DSIModel(Alloy):
         df_spinodal = df_result.dropna()
 
         (x_c, T_c) = df_spinodal.iloc[df_spinodal['t'].argmax()]
-        print("Spinodal critical point (x_c, T_c):", (x_c, T_c))
+        print("    Spinodal critical point (x_c, T_c):", (x_c, T_c))
 
         return df_spinodal
 
@@ -585,12 +580,12 @@ class DSIModel(Alloy):
         print("-----------------------------------------------")
         print("\033[36mBinodal curve\033[0m")
         print("-----------------------------------------------")
-        print(f"Temperature range: From {temperatures[0]} to {temperatures[-1]}, with step {temperatures[1]-temperatures[0]}")
-        print("Component A:", A)
-        print("Component B:", B)
-        print("Slope parameters:", slope)
-        print("Epsilon (eps):", eps)
-        print("Number of points:", npoints)
+        print(f"    Temperature range: From {temperatures[0]} to {temperatures[-1]}, with step {temperatures[1]-temperatures[0]}")
+        print("    Component A:", A)
+        print("    Component B:", B)
+        print("    Slope parameters:", slope)
+        print("    Epsilon (eps):", eps)
+        print("    Number of points:", npoints)
         
         # Compute the miscibility gap for each temperature.
         binodal_data = [self._miscibility_gap(T, A, B, slope, eps, npoints) for T in temperatures]
@@ -609,6 +604,6 @@ class DSIModel(Alloy):
         df_binodal = pd.concat([df_lower, df_upper], ignore_index=True)
 
         (x_c, T_c) = df_binodal.iloc[df_binodal['t'].argmax()]
-        print("Binodal critical point (x_c, T_c):", (x_c, T_c))
+        print("    Binodal critical point (x_c, T_c):", (x_c, T_c))
         
         return df_binodal

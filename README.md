@@ -16,7 +16,7 @@ $ pip install blendpy
 
 ## Getting started
 
-First, import the necessary modules from ASE and MACE:
+First, import the necessary modules from ASE:
 ```python
 from ase.io import write
 from ase.build import bulk

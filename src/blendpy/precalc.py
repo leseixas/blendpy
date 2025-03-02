@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# file: ace.py
+# file: precalc.py
 
 # This code is part of blendpy.
 # MIT License
@@ -24,6 +24,12 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-class ACE(Atoms):
-    def __init__(self):
+class PreCalc(Atoms):
+    def get_energies(self):
+        pass
+
+    def get_dsimodel(self):
+        pass
+
+    def plot(self):
         pass

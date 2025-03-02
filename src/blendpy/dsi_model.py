@@ -319,7 +319,7 @@ class DSIModel(Alloy):
         the spinodal points where the second derivative of the Gibbs free energy with respect to molar fraction changes sign.
         """
         print("-----------------------------------------------")
-        print("\033[36mSpinodal decomposition calculation\033[0m")
+        print("\033[36mSpinodal curve\033[0m")
         print("-----------------------------------------------")
         print(f"Temperature range: From {temperatures[0]} to {temperatures[-1]}, with step {temperatures[1]-temperatures[0]}")
         print("Component A:", A)
@@ -352,6 +352,9 @@ class DSIModel(Alloy):
         reversed_df2 = df2.iloc[::-1].reset_index(drop=True)
         df_result = pd.concat([df1, reversed_df2], axis=0, ignore_index=True)
         df_spinodal = df_result.dropna()
+
+        (x_c, T_c) = df_spinodal.iloc[df_spinodal['t'].argmax()]
+        print("Spinodal critical point (x_c, T_c):", (x_c, T_c))
 
         return df_spinodal
 
@@ -573,7 +576,7 @@ class DSIModel(Alloy):
             DataFrame containing the binodal curve with columns 'x' and 't', where 'x' is the composition and 't' is the temperature.
         """
         print("-----------------------------------------------")
-        print("\033[36mBinodal curve calculation\033[0m")
+        print("\033[36mBinodal curve\033[0m")
         print("-----------------------------------------------")
         print(f"Temperature range: From {temperatures[0]} to {temperatures[-1]}, with step {temperatures[1]-temperatures[0]}")
         print("Component A:", A)
@@ -597,5 +600,8 @@ class DSIModel(Alloy):
         
         # Concatenate to form the complete solvus curve.
         df_binodal = pd.concat([df_lower, df_upper], ignore_index=True)
+
+        (x_c, T_c) = df_binodal.iloc[df_binodal['t'].argmax()]
+        print("Binodal critical point (x_c, T_c):", (x_c, T_c))
         
         return df_binodal

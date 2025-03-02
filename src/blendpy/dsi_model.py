@@ -64,7 +64,8 @@ class DSIModel(Alloy):
         _create_supercells(): Create supercell configurations.
         _create_dilute_alloys(): Create dilute alloy configurations.
         """
-        print("\033[36mDSI Model initialized.\033[0m")
+        print("-----------------------------------------------")
+        print("\033[36mDSI Model initialized\033[0m")
         print("-----------------------------------------------")
         super().__init__(alloy_components)
         self.n_components = len(alloy_components)
@@ -148,7 +149,7 @@ class DSIModel(Alloy):
                 dilute_matrix_row.append(new_atoms)
             dilute_supercells_matrix.append(dilute_matrix_row)
 
-        print("List dilute alloys:", list_alloys)
+        print("Listing dilute alloys:", list_alloys)
         return dilute_supercells_matrix
 
 
@@ -169,7 +170,9 @@ class DSIModel(Alloy):
             mask (list): A list of directions and angles in Voigt notation that can be optimized.
                          A value of 1 enables optimization, while a value of 0 fixes it. (Default: [1,1,1,1,1,1])
         """
-        print("\033[36mOptimizing dilute alloys...\033[0m")
+        print("-----------------------------------------------")
+        print("\033[36mDilute alloys optimization\033[0m")
+        print("-----------------------------------------------")
         print("Optimization method:", method)
         print("Maximum force criteria:", fmax, "eV/ang")
         print("Maximum number of steps:", steps)
@@ -232,7 +235,9 @@ class DSIModel(Alloy):
 
         m_dsi_kjmol = m_dsi * (96.4853321233100184) # converting value to kJ/mol
         
-        print("Diluting parameters matrix (M_DSI) in kJ/mol:")
+        print("-----------------------------------------------")
+        print("\033[36mDiluting parameters matrix (in kJ/mol)\033[0m")
+        print("-----------------------------------------------")
         print(m_dsi_kjmol)
 
         self.diluting_parameters = m_dsi_kjmol
@@ -313,9 +318,10 @@ class DSIModel(Alloy):
         The function calculates the Gibbs free energy as a function of temperature and molar fraction, and then determines
         the spinodal points where the second derivative of the Gibbs free energy with respect to molar fraction changes sign.
         """
-
-        print("\033[36mCalculating spinodal decomposition...\033[0m")
-        print("Temperature range:", temperatures)
+        print("-----------------------------------------------")
+        print("\033[36mSpinodal decomposition calculation\033[0m")
+        print("-----------------------------------------------")
+        print(f"Temperature range: From {temperatures[0]} to {temperatures[-1]}, with step {temperatures[1]-temperatures[0]}")
         print("Component A:", A)
         print("Component B:", B)
         print("Slope parameters:", slope)
@@ -566,8 +572,10 @@ class DSIModel(Alloy):
         pd.DataFrame
             DataFrame containing the binodal curve with columns 'x' and 't', where 'x' is the composition and 't' is the temperature.
         """
-        print("\033[36mCalculating binodal curve...\033[0m")
-        print("Temperature range:", temperatures)
+        print("-----------------------------------------------")
+        print("\033[36mBinodal curve calculation\033[0m")
+        print("-----------------------------------------------")
+        print(f"Temperature range: From {temperatures[0]} to {temperatures[-1]}, with step {temperatures[1]-temperatures[0]}")
         print("Component A:", A)
         print("Component B:", B)
         print("Slope parameters:", slope)

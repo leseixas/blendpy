@@ -7,14 +7,29 @@
 
 **Blendpy** uses atomistic simulations with ASE calculators to compute alloy properties like enthalpy of mixing. It supports binary and multicomponent systems, including alloys and pseudoalloys.
 
+## Table of contents
+
+- [Installation](#installation)
+- [Usage](#usage)
+    - [Geometry optimization](#geometry-optimization)
+    - [Enthalpy of mixing](#enthalpy-of-mixing)
+    - [Phase diagram](#phase-diagram)
+    - [Polymorphism](#polymorphism)
+    - [Vibratoional entropy of excess](#vibrational-entropy-of-excess)
+- [License](#license)
+- [Acknowledgements](#acknowledgements)
+
 ## Installation
 
 Install blendpy easily using pip, Python’s package manager:
-```bash
-$ pip install blendpy
+```sh
+pip install --upgrade pip
+pip install blendpy
 ```
 
-## Getting started
+## Usage
+
+### Geometry optimization
 
 First, import the necessary modules from ASE:
 ```python
@@ -61,16 +76,18 @@ optimizer_platinum.run(fmax=0.01)
 Save the optimized unit cells to CIF files:
 ```python
 # Save the optimized unit cells for Au and Pt
-write("Au.cif", gold)
-write("Pt.cif", platinum)
+write("Au_relaxed.cif", gold)
+write("Pt_relaxed.cif", platinum)
 ```
 
-Now, import the `DSIModel` from blendpy and create a `DSIModel` object using the optimized structures:
+### Enthalpy of mixing
+
+Import the `DSIModel` from blendpy and create a `DSIModel` object using the optimized structures:
 ```python
 from blendpy import DSIModel
 
 # Create a DSIModel object
-blendpy = DSIModel(alloy_components = ['Au.cif', 'Pt.cif'],
+blendpy = DSIModel(alloy_components = ['Au_relaxed.cif', 'Pt_relaxed.cif'],
                    supercell = [2,2,2],
                    calculator = calc_mace)
 ```
@@ -127,7 +144,7 @@ plt.show()
 <p align="center"><a name="fig1">Figure 1</a> - Enthalpy of mixing of the Au-Pt alloy computed using the DSI model and MACE interatomic potentials.</p>
 
 
-## Phase diagram
+### Phase diagram
 
 By analyzing the mixing enthalpies and entropies, we can calculate the Gibbs free energy of the Au–Pt alloy mixture and determine both the spinodal and binodal (solvus) decomposition curves. These curves, which form key features of the alloy's phase diagram, delineate regions of differing stability: below the binodal curve, the solid solution (Au, Pt) is metastable, whereas it becomes unstable beneath the spinodal curve.
 
@@ -192,13 +209,11 @@ plt.show()
 <p align="center"><a name="fig1">Figure 2</a> - Phase diagram of the Au–Pt alloy computed using the DSI model and MACE interatomic potentials.</p>
 
 
-## Enthalpy of mixing with polymorphism
+### Polymorphism
 
-```python
 
-# TODO: 
+### Vibrational entropy of excess
 
-```
 
 ## License
 

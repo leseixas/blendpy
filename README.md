@@ -12,22 +12,29 @@
 - [Installation](#installation)
 - [Usage](#usage)
     - [Geometry optimization](#geometry-optimization)
-    - [Enthalpy of mixing](#enthalpy-of-mixing)
-    - [Phase diagram](#phase-diagram)
-    - [Polymorphism](#polymorphism)
-    - [Vibratoional entropy of excess](#vibrational-entropy-of-excess)
+    - [DSI model](#dsi  )
+        - [Enthalpy of mixing](#enthalpy-of-mixing)
+        - [Phase diagram](#phase-diagram)
+        - [Polymorphism](#polymorphism)
+        - [Vibrational entropy of excess](#vibrational-entropy-of-excess)
 - [License](#license)
 - [Acknowledgements](#acknowledgements)
 
 ## Installation
 
-Install blendpy easily using pip, Python’s package manager:
+Install **blendpy** easily using pip, Python’s package manager:
 ```sh
 pip install --upgrade pip
 pip install blendpy
 ```
 
 ## Usage
+
+Welcome to this step-by-step tutorial on calculating alloy properties. In this guide, you will learn how to compute important parameters, such as the enthalpy of mixing, and the spinodal and binodal decomposition curves derived from the phase diagram. We begin by defining the alloy components, then proceed through geometry optimization, and finally move on to advanced modeling techniques with the DSI model.
+
+To start, provide a list of structure files (e.g., CIF or POSCAR) that represent your alloy components. For best accuracy, it is recommended that these files have been pre-optimized using the same calculator and parameters that will be used in the subsequent alloy property calculations.
+
+If you already have these optimized structures, you may skip ahead to the "[DSI model](#dsi-model)" section. If not, proceed to the "[Geometry Optimization](#geometry-optimization)" section to prepare your structures for analysis.
 
 ### Geometry optimization
 
@@ -80,7 +87,8 @@ write("Au_relaxed.cif", gold)
 write("Pt_relaxed.cif", platinum)
 ```
 
-### Enthalpy of mixing
+### DSI model 
+#### Enthalpy of mixing
 
 Import the `DSIModel` from blendpy and create a `DSIModel` object using the optimized structures:
 ```python
@@ -134,7 +142,7 @@ for spine in ax.spines.values():
     spine.set_linewidth(3)
 
 plt.tight_layout()
-# plt.savefig("enthalpy_of_mixing.png", dpi=600, format='png', bbox_inches='tight') # uncomment this if you want to save the figure
+# plt.savefig("enthalpy_of_mixing.png", dpi=600, format='png', bbox_inches='tight')
 plt.show()
 ```
 
@@ -144,7 +152,7 @@ plt.show()
 <p align="center"><a name="fig1">Figure 1</a> - Enthalpy of mixing of the Au-Pt alloy computed using the DSI model and MACE interatomic potentials.</p>
 
 
-### Phase diagram
+#### Phase diagram
 
 By analyzing the mixing enthalpies and entropies, we can calculate the Gibbs free energy of the Au–Pt alloy mixture and determine both the spinodal and binodal (solvus) decomposition curves. These curves, which form key features of the alloy's phase diagram, delineate regions of differing stability: below the binodal curve, the solid solution (Au, Pt) is metastable, whereas it becomes unstable beneath the spinodal curve.
 
@@ -199,7 +207,7 @@ for spine in ax.spines.values():
     spine.set_linewidth(3)
 
 plt.tight_layout()
-# plt.savefig("phase_diagram.png", dpi=600, format='png', bbox_inches='tight') # uncomment this if you want to save the figure
+# plt.savefig("phase_diagram.png", dpi=600, format='png', bbox_inches='tight')
 plt.show()
 ```
 
@@ -209,10 +217,10 @@ plt.show()
 <p align="center"><a name="fig1">Figure 2</a> - Phase diagram of the Au–Pt alloy computed using the DSI model and MACE interatomic potentials.</p>
 
 
-### Polymorphism
+#### Polymorphism
 
 
-### Vibrational entropy of excess
+#### Vibrational entropy of excess
 
 
 ## License

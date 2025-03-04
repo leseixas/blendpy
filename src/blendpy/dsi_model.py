@@ -39,6 +39,7 @@ from .alloy import Alloy
 
 # Constants
 R = 8.314462618 / 1000  # Gas constant in kJ/(mol*K)
+convert_eVatom_to_kJmol = 96.4853321233100184
 
 class DSIModel(Alloy):
     def __init__(self, alloy_components: list, supercell: list = [1,1,1], calculator = None, diluting_parameters = None, doping_site: int = 0):
@@ -87,6 +88,7 @@ class DSIModel(Alloy):
                     atoms.calc = calculator
                     energy = atoms.get_potential_energy()
                     atoms.info['energy'] = energy
+                    print(f"    Total energy ({atoms.get_chemical_formula()}) [Non-relaxed]: {energy} eV")
         
         
     def _create_supercells(self):
@@ -135,8 +137,7 @@ class DSIModel(Alloy):
         if n < 2:
             raise ValueError("Need at least two elements to create an alloy.")
         
-        doping_site = self.doping_site
-        dopant = [atoms.get_chemical_symbols()[doping_site] for atoms in self._supercells]
+        dopant = [atoms.get_chemical_symbols()[self.doping_site] for atoms in self._supercells]
         print("    Dopant atoms:", dopant)
 
         list_alloys = []
@@ -147,7 +148,7 @@ class DSIModel(Alloy):
             for j in range(n):
                 # Copy the base supercell from index i.
                 new_atoms = self._supercells[i].copy()
-                new_atoms[doping_site].symbol = dopant[j]
+                new_atoms[self.doping_site].symbol = dopant[j]
                 list_alloys.append(new_atoms.get_chemical_formula())
                 dilute_matrix_row.append(new_atoms)
             dilute_supercells_matrix.append(dilute_matrix_row)
@@ -188,7 +189,10 @@ class DSIModel(Alloy):
                 optimizer = method(ucf, logfile=logfile)
                 optimizer.run(fmax=fmax, steps=steps)
                 if 'energy' not in atoms.info:
-                    atoms.info['energy'] = atoms.get_potential_energy()
+                    energy = atoms.get_potential_energy()
+                    atoms.info['energy'] = energy
+                    print(f"    Total energy ({atoms.get_chemical_formula()}) [Relaxed]: {energy} eV")
+
 
     
     def get_energy_matrix(self):
@@ -236,7 +240,7 @@ class DSIModel(Alloy):
             for j in range(len(row)):
                 m_dsi[i,j] = energy[i,j] - ((1-x)*energy[i,i] + x * energy[j,j])
 
-        m_dsi_kjmol = m_dsi * (96.4853321233100184) # converting value to kJ/mol
+        m_dsi_kjmol = m_dsi * convert_eVatom_to_kJmol # converting value to kJ/mol
         
         print("-----------------------------------------------")
         print("\033[36mDiluting parameters matrix (in kJ/mol)\033[0m")
@@ -262,8 +266,10 @@ class DSIModel(Alloy):
         """
         x = np.linspace(0, 1, npoints)
         if self.diluting_parameters is None:
+            print("Calculating diluting parameters...")
             m_dsi = self.get_diluting_parameters()
         else:
+            print("Loading diluting parameters...")
             m_dsi = self.diluting_parameters
             
         enthalpy = m_dsi[A,B] * x * (1-x)**2 + m_dsi[B,A] * x**2 * (1-x) + (1-x) * slope[0] + x * slope[1]

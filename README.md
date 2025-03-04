@@ -16,7 +16,7 @@
         - [Enthalpy of mixing](#enthalpy-of-mixing)
         - [Phase diagram](#phase-diagram)
         - [Polymorphism](#polymorphism)
-        - [Vibrational entropy of excess](#vibrational-entropy-of-excess)
+        - [DSI model from pre-calculated data](#dsi-model-from-pre-calculated-data)
 - [License](#license)
 - [Acknowledgements](#acknowledgements)
 
@@ -38,39 +38,37 @@ If you already have these optimized structures, you may skip ahead to the "[DSI 
 
 ### Geometry optimization
 
-First, import the necessary modules from ASE:
+For example, let's calculate the properties of an Au-Pt alloy. We begin by retrieving the Au (fcc) and Pt (fcc) geometries from ASE. Next, we optimize these geometries using the MACE calculator, which leverages machine learning interatomic potentials. Finally, we save the optimized structures for use in the DSI model. To achieve this, we will follow several key steps. 
+
+**Step 1:** Import the necessary modules from ASE and MACE:
 ```python
 from ase.io import write
 from ase.build import bulk
 from ase.optimize import BFGSLineSearch
 from ase.filters import UnitCellFilter
+from mace.calculators import mace_mp
 ```
 
-Next, create `Atoms` objects for gold (Au) and platinum (Pt) using the `bulk` function:
+**Step 2:** Create `Atoms` objects for gold (Au) and platinum (Pt) using the `bulk` function:
 ```python
 # Create Au and Pt Atoms object
 gold = bulk("Au", cubic=True)
 platinum = bulk("Pt", cubic=True)
 ```
 
-Create a MACE calculator object to optimize the structures:
+**Step 3:** Create a MACE calculator object to optimize the structures and assign the calculator to the `Atoms` objects:
 ```python
-# Initialize the MACE calculator
-from mace.calculators import mace_mp
 calc_mace = mace_mp(model="small",
                     dispersion=False,
                     default_dtype="float32",
                     device='cpu')
-```
 
-Assign the calculator to the `Atoms` objects:
-```python
 # Assign the calculator to the Atoms objects
 gold.calc = calc_mace
 platinum.calc = calc_mace
 ```
 
-Optimize the unit cells of Au and Pt using the `BFGSLineSearch` optimizer:
+**Step 4:** Optimize the unit cells of Au and Pt using the `BFGSLineSearch` optimizer:
 ```python
 # Optimize Au and Pt unit cells
 optimizer_gold = BFGSLineSearch(UnitCellFilter(gold))
@@ -80,7 +78,7 @@ optimizer_platinum = BFGSLineSearch(UnitCellFilter(platinum))
 optimizer_platinum.run(fmax=0.01)
 ```
 
-Save the optimized unit cells to CIF files:
+**Step 5:** Save the optimized unit cells to CIF files:
 ```python
 # Save the optimized unit cells for Au and Pt
 write("Au_relaxed.cif", gold)
@@ -220,7 +218,7 @@ plt.show()
 #### Polymorphism
 
 
-#### Vibrational entropy of excess
+#### DSI model from pre-calculated data
 
 
 ## License

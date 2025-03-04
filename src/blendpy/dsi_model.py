@@ -187,7 +187,8 @@ class DSIModel(Alloy):
                 ucf = UnitCellFilter(atoms, mask=mask)
                 optimizer = method(ucf, logfile=logfile)
                 optimizer.run(fmax=fmax, steps=steps)
-                atoms.info['energy'] = atoms.get_potential_energy()
+                if 'energy' not in atoms.info:
+                    atoms.info['energy'] = atoms.get_potential_energy()
 
     
     def get_energy_matrix(self):

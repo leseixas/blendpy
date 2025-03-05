@@ -193,11 +193,7 @@ class DSIModel(Alloy):
                 ucf = UnitCellFilter(atoms, mask=mask)
                 optimizer = method(ucf, logfile=logfile)
                 optimizer.run(fmax=fmax, steps=steps)
-                # if 'energy' not in atoms.info:
-                #     print("WARNING: 'energy' is not in atoms.info. Calculating this now in optimize method.")
-                #     atoms.info['energy'] = atoms.get_potential_energy()
-                print(f"    Total energy ({atoms.get_chemical_formula()}) [Relaxed]: {atoms.calc.results['energy']} eV")
-                # os.remove('.optimize.traj')
+                print(f"    Total energy ({atoms.get_chemical_formula()}) [Relaxed]: {atoms.get_potential_energy()} eV")
 
     
     def get_energy_matrix(self):

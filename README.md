@@ -38,7 +38,7 @@ This comprehensive tutorial guides you through calculating alloy properties. In 
 
 To start, provide a list of structure files (e.g., CIF or POSCAR) that represent your alloy components. For best accuracy, it is recommended that these files have been pre-optimized using the same calculator and parameters that will be used in the subsequent alloy property calculations.
 
-If you already have these optimized structures, you may skip ahead to the "[DSI model](#dsi-model)" section. If not, proceed to the "[Geometry Optimization](#geometry-optimization)" section to prepare your structures for analysis.
+If you already have these optimized structures, you may skip ahead to the "[DSI model](#dilute-solution-interpolation-dsi-model)" section. If not, proceed to the "[Geometry Optimization](#geometry-optimization)" section to prepare your structures for analysis.
 
 ## Geometry optimization
 

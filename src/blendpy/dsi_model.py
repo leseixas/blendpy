@@ -43,7 +43,7 @@ R = 8.314462618 / 1000  # Gas constant in kJ/(mol*K)
 convert_eVatom_to_kJmol = 96.4853321233100184
 
 class DSIModel(Alloy):
-    def __init__(self, alloy_components: list, supercell: list = [1,1,1], calculator = None, diluting_parameters = None, doping_site: int = 0):
+    def __init__(self, alloy_components: list = [], supercell: list = [1,1,1], calculator = None, diluting_parameters = None, doping_site: int = 0):
         """
         Initialize the DSIModel class with alloy components, supercell dimensions, and an optional calculator.
 
@@ -83,8 +83,6 @@ class DSIModel(Alloy):
 
         # To store energy_matrix and dsi_matrix
         self._energy_matrix = None
-        self._dsi_matrix = None
-
 
         # If a calculator is provided, attach it to each Atoms object.
         if calculator is not None:
@@ -108,13 +106,13 @@ class DSIModel(Alloy):
         --------
             None
         """
-        for filename in self.alloy_components:
-            # Read the structure from file (ASE infers file type automatically)
-            atoms = read(filename)
-            # Create the supercell using the repeat method
-            supercell_atoms = atoms.repeat(self.supercell)
-            self._supercells.append(supercell_atoms)
-
+        if len(self.alloy_components) > 0:
+            for filename in self.alloy_components:
+                # Read the structure from file (ASE infers file type automatically)
+                atoms = read(filename)
+                # Create the supercell using the repeat method
+                supercell_atoms = atoms.repeat(self.supercell)
+                self._supercells.append(supercell_atoms)
 
     def get_supercells(self):
         """
@@ -194,6 +192,16 @@ class DSIModel(Alloy):
                 optimizer = method(ucf, logfile=logfile)
                 optimizer.run(fmax=fmax, steps=steps)
                 print(f"    Total energy ({atoms.get_chemical_formula()}) [Relaxed]: {atoms.get_potential_energy()} eV")
+
+
+    def set_energy_matrix(self, energy_matrix: np.ndarray):
+        """
+        Sets the energy matrix for the model.
+
+        Parameters:
+        energy_matrix (np.ndarray): A numpy array representing the energy matrix to be set.
+        """
+        self._energy_matrix = energy_matrix
 
     
     def get_energy_matrix(self):

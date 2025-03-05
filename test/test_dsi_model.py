@@ -4,6 +4,7 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../s
 
 import pytest
 from ase import Atoms
+from ase.io import read
 from ase.calculators.emt import EMT
 from blendpy.dsi_model import DSIModel
 
@@ -146,4 +147,51 @@ def test_get_supercells(setup_data):
         assert isinstance(atoms, Atoms)
 
 
+def test_create_dilute_alloys(setup_data):
+    """
+    Test the _create_dilute_alloys method of the DSIModel class.
+
+    This test verifies that the _create_dilute_alloys method correctly creates a matrix of dilute alloys
+    from the provided supercells. It checks the following:
+    
+    - The method raises a ValueError if there are fewer than two supercells.
+    - The returned dilute alloys matrix is of type list.
+    - Each element in the dilute alloys matrix is an instance of Atoms.
+    - The dimensions of the dilute alloys matrix are n x n, where n is the number of supercells.
+    - The chemical symbols of the doping site in each supercell are correctly replaced.
+
+    Args:
+        setup_data (tuple): A tuple containing alloy_components, supercell, and doping_site.
+    """
+    alloy_components, supercell, _, doping_site = setup_data
+    model = DSIModel(alloy_components=alloy_components, supercell=supercell, doping_site=doping_site)
+    
+    # Test ValueError when there are fewer than two supercells
+    model._supercells = [model._supercells[0]]
+    with pytest.raises(ValueError, match="Need at least two elements to create an alloy."):
+        model._create_dilute_alloys()
+    
+    # Reset supercells for further testing
+    model._supercells = []
+    for filename in alloy_components:
+        atoms = read(filename)
+        assert isinstance(atoms, Atoms)
+        supercell_atoms = atoms.repeat(supercell)
+        model._supercells.append(supercell_atoms)
+    
+    dilute_alloys = model._create_dilute_alloys()
+    
+    assert isinstance(dilute_alloys, list)
+    n = len(model._supercells)
+    assert len(dilute_alloys) == n
+    for row in dilute_alloys:
+        assert isinstance(row, list)
+        assert len(row) == n
+        for atoms in row:
+            assert isinstance(atoms, Atoms)
+    
+    dopant = [atoms.get_chemical_symbols()[doping_site] for atoms in model._supercells]
+    for i in range(n):
+        for j in range(n):
+            assert dilute_alloys[i][j].get_chemical_symbols()[doping_site] == dopant[j]
 

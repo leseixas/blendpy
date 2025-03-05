@@ -80,6 +80,10 @@ class DSIModel(Alloy):
         self.dilute_alloys = self._create_dilute_alloys()
         self.diluting_parameters = diluting_parameters
 
+        # To store energy_matrix and dsi_matrix
+        self._energy_matrix = None
+        self._dsi_matrix = None
+
 
         # If a calculator is provided, attach it to each Atoms object.
         if calculator is not None:
@@ -189,10 +193,10 @@ class DSIModel(Alloy):
                 optimizer = method(ucf, logfile=logfile)
                 optimizer.run(fmax=fmax, steps=steps)
                 if 'energy' not in atoms.info:
+                    print("WARNING: 'energy' is not in atoms.info. Calculating this now in optimize method.")
                     energy = atoms.get_potential_energy()
                     atoms.info['energy'] = energy
-                    print(f"    Total energy ({atoms.get_chemical_formula()}) [Relaxed]: {energy} eV")
-
+                print(f"    Total energy ({atoms.get_chemical_formula()}) [Relaxed]: {energy} eV")
 
     
     def get_energy_matrix(self):
@@ -207,12 +211,23 @@ class DSIModel(Alloy):
             np.ndarray: A 2D numpy array of shape (n_components, n_components) containing
                         the energy values of the dilute alloys.
         """
-        n  = self.n_components
-        energy_matrix = np.zeros((n,n), dtype=float)
-        for i, row in enumerate(self.dilute_alloys):
-            for j, atoms in enumerate(row):
-                energy_matrix[i,j] = atoms.info['energy']
-        return energy_matrix
+        if self._energy_matrix is not None:
+            print("Loading energy_matrix...")
+            return self._energy_matrix
+        else:
+            print("Calculating energy_matrix...")
+            n  = self.n_components
+            energy_matrix = np.zeros((n,n), dtype=float)
+            for i, row in enumerate(self.dilute_alloys):
+                for j, atoms in enumerate(row):
+                    if 'energy' not in atoms.info:
+                        print("WARNING: 'energy' is not in atoms.info. Calculating this now in get_energy_matrix method.")
+                        atoms.info['energy'] = atoms.get_potential_energy()
+                    energy_matrix[i,j] = atoms.info['energy']
+            
+            # Store energy_matrix as DSIModel attribute
+            self._energy_matrix = energy_matrix 
+            return energy_matrix
 
 
     def get_diluting_parameters(self):

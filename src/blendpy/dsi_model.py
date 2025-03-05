@@ -194,9 +194,8 @@ class DSIModel(Alloy):
                 optimizer.run(fmax=fmax, steps=steps)
                 if 'energy' not in atoms.info:
                     print("WARNING: 'energy' is not in atoms.info. Calculating this now in optimize method.")
-                    energy = atoms.get_potential_energy()
-                    atoms.info['energy'] = energy
-                print(f"    Total energy ({atoms.get_chemical_formula()}) [Relaxed]: {energy} eV")
+                    atoms.info['energy'] = atoms.get_potential_energy()
+            print(f"    Total energy ({atoms.get_chemical_formula()}) [Relaxed]: {atoms.info['energy']} eV")
 
     
     def get_energy_matrix(self):
@@ -227,7 +226,7 @@ class DSIModel(Alloy):
             
             # Store energy_matrix as DSIModel attribute
             self._energy_matrix = energy_matrix 
-            return energy_matrix
+            return self._energy_matrix
 
 
     def get_diluting_parameters(self):

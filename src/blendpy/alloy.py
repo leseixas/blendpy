@@ -28,8 +28,10 @@
 Module alloy
 '''
 
+import numpy as np
 from ase.io import read
 from ase.atoms import Atoms
+from .constants import R
 
 class Alloy(Atoms):
     '''
@@ -85,3 +87,19 @@ class Alloy(Atoms):
             set: A set containing the chemical elements.
         """
         return set(self._chemical_elements)
+    
+    
+    def get_configurational_entropy(self, eps: float = 1.e-4, npoints: int = 101):
+        """
+        Calculate the configurational entropy of a binary mixture.
+
+        Parameters:
+        eps (float): A small value to avoid division by zero in logarithm calculations (Default: 1.e-4).
+        npoints (int): Number of points in the molar fraction range to calculate the entropy (Default: 101).
+
+        Returns:
+        numpy.ndarray: Array of configurational entropy values for the given molar fraction range.
+        """
+        x = np.linspace(0,1,npoints)
+        entropy = - R * ( (1-x-eps)*np.log(1-(x-eps)) + (x+eps)*np.log(x+eps) )
+        return entropy

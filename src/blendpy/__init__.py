@@ -28,16 +28,18 @@ import warnings
 warnings.filterwarnings("ignore")
 
 from ._version import __version__
+from .constants import R, convert_eVatom_to_kJmol
 from .alloy import Alloy
 from .dsi_model import DSIModel
 from .polymorph import Polymorph
+from .phase_diagram import PhaseDiagram
 
 from sys import version as __python_version__
 from ase import __version__ as __ase_version__
 from numpy import __version__ as __numpy_version__
 from pandas import __version__ as __pandas_version__
 
-__all__ = ['Alloy', 'DSIModel', 'Polymorph']
+__all__ = ['Alloy', 'DSIModel', 'Polymorph', 'PhaseDiagram']
 
 def banner_large():
     print("                                                  ")

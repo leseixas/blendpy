@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# file: _version.py
+# file: constants.py
 
 # This code is part of blendpy.
 # MIT License
@@ -24,4 +24,10 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-__version__ = '25.3.24'
+'''
+Module constants
+'''
+
+# Constants
+R = 8.314462618 / 1000  # Gas constant in kJ/(mol*K)
+convert_eVatom_to_kJmol = 96.4853321233100184

@@ -14,9 +14,9 @@
     - [Geometry optimization](#geometry-optimization)
     - [DSI model](#dsi  )
         - [Enthalpy of mixing](#enthalpy-of-mixing)
-        - [Phase diagram](#phase-diagram)
-        - [Polymorphism](#polymorphism)
         - [DSI model from pre-calculated data](#dsi-model-from-pre-calculated-data)
+        - [Polymorphism](#polymorphism)
+        - [Phase diagram](#phase-diagram)
 - [License](#license)
 - [Acknowledgements](#acknowledgements)
 
@@ -149,6 +149,11 @@ plt.show()
 
 <p align="center"><a name="fig1">Figure 1</a> - Enthalpy of mixing of the Au-Pt alloy computed using the DSI model and MACE interatomic potentials.</p>
 
+#### DSI model from pre-calculated data
+
+
+#### Polymorphism
+
 
 #### Phase diagram
 
@@ -213,12 +218,6 @@ plt.show()
 <img src="https://raw.githubusercontent.com/leseixas/blendpy/refs/heads/main/figs/phase_diagram.png" style="height: 500px"></p>
 
 <p align="center"><a name="fig1">Figure 2</a> - Phase diagram of the Au–Pt alloy computed using the DSI model and MACE interatomic potentials.</p>
-
-
-#### Polymorphism
-
-
-#### DSI model from pre-calculated data
 
 
 ## License

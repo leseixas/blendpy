@@ -199,10 +199,10 @@ class DSIModel(Alloy):
         Parameters:
         energy_matrix (np.ndarray): A numpy array representing the energy matrix to be set.
         """
-        self._energy_matrix = energy_matrix
+        self._energy_matrix = np.array(energy_matrix)
 
     
-    def get_energy_matrix(self):
+    def get_energy_matrix(self) -> np.ndarray:
         """
         Computes and returns the energy matrix for the dilute alloys.
 
@@ -229,11 +229,11 @@ class DSIModel(Alloy):
                     energy_matrix[i,j] = atoms.info['energy']
             
             # Store energy_matrix as DSIModel attribute
-            self._energy_matrix = energy_matrix 
+            self._energy_matrix = energy_matrix
             return self._energy_matrix
 
 
-    def get_diluting_parameters(self):
+    def get_diluting_parameters(self) -> np.ndarray:
         """
         Calculate the diluting parameters for the given dilute alloys.
 
@@ -269,7 +269,7 @@ class DSIModel(Alloy):
         return m_dsi_kjmol
 
 
-    def get_enthalpy_of_mixing(self, A: int = 0, B: int = 1, slope: list = [0,0], npoints: int = 101):
+    def get_enthalpy_of_mixing(self, A: int = 0, B: int = 1, slope: list = [0,0], npoints: int = 101) -> np.ndarray:
         """
         Calculate the enthalpy of mixing for a binary mixture.
 
@@ -284,11 +284,10 @@ class DSIModel(Alloy):
         """
         x = np.linspace(0, 1, npoints)
         if self.diluting_parameters is None:
-            print("Calculating diluting parameters...")
+            print("Determining dilution parameters in enthalpy of mixing calculations...")
             m_dsi = self.get_diluting_parameters()
         else:
-            print("Loading diluting parameters...")
             m_dsi = self.diluting_parameters
             
         enthalpy = m_dsi[A,B] * x * (1-x)**2 + m_dsi[B,A] * x**2 * (1-x) + (1-x) * slope[0] + x * slope[1]
-        return enthalpy
+        return np.array(enthalpy)

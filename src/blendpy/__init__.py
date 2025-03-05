@@ -27,17 +27,24 @@
 import warnings
 warnings.filterwarnings("ignore")
 
+import os
+from datetime import datetime
+from socket import gethostname
+from sys import version as __python_version__
+from sys import executable as __python_executable__
+from ase import __version__ as __ase_version__
+from numpy import __version__ as __numpy_version__
+from pandas import __version__ as __pandas_version__
+
 from ._version import __version__
 from .constants import R, convert_eVatom_to_kJmol
 from .alloy import Alloy
 from .dsi_model import DSIModel
 from .polymorph import Polymorph
 from .phase_diagram import PhaseDiagram
-
-from sys import version as __python_version__
-from ase import __version__ as __ase_version__
-from numpy import __version__ as __numpy_version__
-from pandas import __version__ as __pandas_version__
+# from .ace import ACE
+# from .sqs import SQS
+# from .intermetallics import Intermetallics
 
 __all__ = ['Alloy', 'DSIModel', 'Polymorph', 'PhaseDiagram']
 
@@ -72,7 +79,15 @@ print("\033[36m    Developed by:\033[0m Leandro Seixas, PhD             ")
 print("                                                  ")
 print("-----------------------------------------------")
 print("                                               ")
-print(f"\033[36mpython version:\033[0m {__python_version__}      ")
+print("System:")
+print(f"├── \033[36mUSER:\033[0m {os.environ['USER']}")
+print(f"├── \033[36mHOSTNAME:\033[0m {gethostname()}")
+print(f"├── \033[36mPWD:\033[0m {os.environ['PWD']}")
+print(f"└── \033[36mDATE:\033[0m {datetime.today().strftime("%Y-%m-%d, %H:%M:%S")}")
+print("                                               ")
+print("Python:")
+print(f"├── \033[36mversion:\033[0m {__python_version__}      ")
+print(f"└── \033[36mexecutable:\033[0m {__python_executable__}      ")
 print("                                               ")
 print("Dependencies:")
 print(f"├── \033[36mase version:\033[0m {__ase_version__}")

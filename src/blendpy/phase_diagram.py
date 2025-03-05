@@ -26,14 +26,14 @@
 
 import numpy as np
 import pandas as pd
-from .alloy import Alloy
+# from .alloy import Alloy
 
 
 '''
 Module phase diagram
 '''
 
-class PhaseDiagram(Alloy):
+class PhaseDiagram():
     def __init__(self, enthalpy, entropy, temperatures: np.ndarray = np.arange(300, 2101, 50)):
         """
         Initialize the phase diagram with given enthalpy, entropy, temperature range, and number of points.
@@ -44,7 +44,7 @@ class PhaseDiagram(Alloy):
         temperatures (np.ndarray, optional): Array of temperatures to consider. Default is an array from 300 to 2100 with a step of 50.
         npoints (int, optional): Number of points for the molar fraction. Default is 101.
         """
-        super().__init__()
+        # super().__init__()
         self.enthalpy = enthalpy
         self.entropy = entropy
         self.temperatures = temperatures

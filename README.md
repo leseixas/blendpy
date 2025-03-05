@@ -22,7 +22,7 @@
 
 ## Installation
 
-Install **blendpy** easily using pip, Python’s package manager:
+Install **blendpy** effortlessly using pip, Python’s default package manager, by running the following command in your terminal:
 ```sh
 pip install --upgrade pip
 pip install blendpy
@@ -30,7 +30,7 @@ pip install blendpy
 
 ## Usage
 
-Welcome to this step-by-step tutorial on calculating alloy properties. In this guide, you will learn how to compute important parameters, such as the enthalpy of mixing, and the spinodal and binodal decomposition curves derived from the phase diagram. We begin by defining the alloy components, then proceed through geometry optimization, and finally move on to advanced modeling techniques with the DSI model.
+This comprehensive tutorial guides you through calculating alloy properties. In this section, you'll learn how to determine key parameters—such as the enthalpy of mixing, and the spinodal and binodal decomposition curves derived from phase diagrams. We start by defining the alloy components, move through geometry optimization, and conclude with advanced modeling techniques using the DSI model.
 
 To start, provide a list of structure files (e.g., CIF or POSCAR) that represent your alloy components. For best accuracy, it is recommended that these files have been pre-optimized using the same calculator and parameters that will be used in the subsequent alloy property calculations.
 

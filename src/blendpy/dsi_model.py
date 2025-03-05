@@ -28,6 +28,7 @@
 Module DSI model
 '''
 
+import os
 import numpy as np
 import pandas as pd
 from ase.io import read
@@ -190,12 +191,14 @@ class DSIModel(Alloy):
         for row in self.dilute_alloys:
             for atoms in row:
                 ucf = UnitCellFilter(atoms, mask=mask)
-                optimizer = method(ucf, logfile=logfile)
+                optimizer = method(ucf, trajectory='.optimize.traj', logfile=logfile)
                 optimizer.run(fmax=fmax, steps=steps)
                 if 'energy' not in atoms.info:
                     print("WARNING: 'energy' is not in atoms.info. Calculating this now in optimize method.")
                     atoms.info['energy'] = atoms.get_potential_energy()
-                print(f"    Total energy ({atoms.get_chemical_formula()}) [Relaxed]: {atoms.info['energy']} eV")
+                atoms_optimized = read('.optimize.traj', index=-1)
+                print(f"    Total energy ({atoms.get_chemical_formula()}) [Relaxed]: {atoms_optimized.info['energy']} eV")
+                os.remove('.optimize.traj')
 
     
     def get_energy_matrix(self):

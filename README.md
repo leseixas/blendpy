@@ -1,22 +1,26 @@
 <h1 align="center" style="margin-top:20px; margin-bottom:50px;">
-<img src="https://raw.githubusercontent.com/leseixas/blendpy/refs/heads/main/logo.png" style="height: 70px"></h1>
+<img src="https://raw.githubusercontent.com/leseixas/blendpy/refs/heads/main/logo.png" style="height: 100px"></h1>
 
 [![License: MIT](https://img.shields.io/github/license/leseixas/blendpy?color=green&style=for-the-badge)](LICENSE)    [![PyPI](https://img.shields.io/pypi/v/blendpy?color=red&style=for-the-badge)](https://pypi.org/project/blendpy/)
 <!-- ![GitHub Downloads (all assets, all releases)](https://img.shields.io/github/downloads/leseixas/blendpy/total?style=for-the-badge&logo=github&label=github&color=blue) -->
 
 
-**Blendpy** uses atomistic simulations with ASE calculators to compute alloy properties like enthalpy of mixing. It supports binary and multicomponent systems, including alloys and pseudoalloys.
+**Blendpy** is a computational toolkit for investigating thermodynamic models of alloys using first-principles calculations
 
 ## Table of contents
 
 - [Installation](#installation)
 - [Usage](#usage)
     - [Geometry optimization](#geometry-optimization)
-    - [DSI model](#dsi  )
+    - [Dilute solution interpolation (DSI) model](#dilute-solution-interpolation-dsi-model)
         - [Enthalpy of mixing](#enthalpy-of-mixing)
         - [DSI model from pre-calculated data](#dsi-model-from-pre-calculated-data)
         - [Polymorphism](#polymorphism)
         - [Phase diagram](#phase-diagram)
+        - [Ternary alloys](#ternary-alloys)
+    - [Cluster expansion](#cluster-expansion)
+    - [Special quasirandom structure (SQS)](#special-quasirandom-structure-sqs)
+    - [Intermetallics](#intermetallics)
 - [License](#license)
 - [Acknowledgements](#acknowledgements)
 
@@ -85,7 +89,7 @@ write("Au_relaxed.cif", gold)
 write("Pt_relaxed.cif", platinum)
 ```
 
-### DSI model 
+### Dilute solution interpolation (DSI) model 
 #### Enthalpy of mixing
 
 Import the `DSIModel` from blendpy and create a `DSIModel` object using the optimized structures:
@@ -219,6 +223,13 @@ plt.show()
 
 <p align="center"><a name="fig1">Figure 2</a> - Phase diagram of the Au–Pt alloy computed using the DSI model and MACE interatomic potentials.</p>
 
+#### Ternary alloys
+
+### Cluster expansion
+
+### Special quasirandom structure (SQS)
+
+### Intermetallics
 
 ## License
 

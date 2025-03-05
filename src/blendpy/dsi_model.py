@@ -195,7 +195,7 @@ class DSIModel(Alloy):
                 if 'energy' not in atoms.info:
                     print("WARNING: 'energy' is not in atoms.info. Calculating this now in optimize method.")
                     atoms.info['energy'] = atoms.get_potential_energy()
-            print(f"    Total energy ({atoms.get_chemical_formula()}) [Relaxed]: {atoms.info['energy']} eV")
+                print(f"    Total energy ({atoms.get_chemical_formula()}) [Relaxed]: {atoms.info['energy']} eV")
 
     
     def get_energy_matrix(self):

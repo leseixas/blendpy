@@ -7,7 +7,7 @@
 
 **Blendpy** is a computational toolkit for investigating thermodynamic models of alloys using first-principles calculations
 
-## Table of contents
+# Table of contents
 
 - [Installation](#installation)
 - [Usage](#usage)
@@ -24,7 +24,7 @@
 - [License](#license)
 - [Acknowledgements](#acknowledgements)
 
-## Installation
+# Installation
 
 Install **blendpy** effortlessly using pip, Python’s default package manager, by running the following command in your terminal:
 ```sh
@@ -32,7 +32,7 @@ pip install --upgrade pip
 pip install blendpy
 ```
 
-## Usage
+# Usage
 
 This comprehensive tutorial guides you through calculating alloy properties. In this section, you'll learn how to determine key parameters—such as the enthalpy of mixing, and the spinodal and binodal decomposition curves derived from phase diagrams. We start by defining the alloy components, move through geometry optimization, and conclude with advanced modeling techniques using the DSI model.
 
@@ -40,7 +40,7 @@ To start, provide a list of structure files (e.g., CIF or POSCAR) that represent
 
 If you already have these optimized structures, you may skip ahead to the "[DSI model](#dsi-model)" section. If not, proceed to the "[Geometry Optimization](#geometry-optimization)" section to prepare your structures for analysis.
 
-### Geometry optimization
+## Geometry optimization
 
 For example, let's calculate the properties of an Au-Pt alloy. We begin by retrieving the Au (fcc) and Pt (fcc) geometries from ASE. Next, we optimize these geometries using the MACE calculator, which leverages machine learning interatomic potentials. Finally, we save the optimized structures for use in the DSI model. To achieve this, we will follow several key steps. 
 
@@ -89,8 +89,8 @@ write("Au_relaxed.cif", gold)
 write("Pt_relaxed.cif", platinum)
 ```
 
-### Dilute solution interpolation (DSI) model 
-#### Enthalpy of mixing
+## Dilute solution interpolation (DSI) model 
+### Enthalpy of mixing
 
 Import the `DSIModel` from blendpy and create a `DSIModel` object using the optimized structures:
 ```python
@@ -153,13 +153,13 @@ plt.show()
 
 <p align="center"><a name="fig1">Figure 1</a> - Enthalpy of mixing of the Au-Pt alloy computed using the DSI model and MACE interatomic potentials.</p>
 
-#### DSI model from pre-calculated data
+### DSI model from pre-calculated data
 
 
-#### Polymorphism
+### Polymorphism
 
 
-#### Phase diagram
+### Phase diagram
 
 By analyzing the mixing enthalpies and entropies, we can calculate the Gibbs free energy of the Au–Pt alloy mixture and determine both the spinodal and binodal (solvus) decomposition curves. These curves, which form key features of the alloy's phase diagram, delineate regions of differing stability: below the binodal curve, the solid solution (Au, Pt) is metastable, whereas it becomes unstable beneath the spinodal curve.
 
@@ -223,18 +223,18 @@ plt.show()
 
 <p align="center"><a name="fig1">Figure 2</a> - Phase diagram of the Au–Pt alloy computed using the DSI model and MACE interatomic potentials.</p>
 
-#### Ternary alloys
+### Ternary alloys
 
-### Cluster expansion
+## Cluster expansion
 
-### Special quasirandom structure (SQS)
+## Special quasirandom structure (SQS)
 
-### Intermetallics
+## Intermetallics
 
-## License
+# License
 
 This is an open source code under [MIT License](LICENSE).
 
-## Acknowledgements
+# Acknowledgements
 
 We thank financial support from FAPESP [(Grant No. 2022/14549-3)](https://bvs.fapesp.br/pt/auxilios/111791/materiais-de-alta-entropia-inteligiveis-desenvolvendo-modelos-dados-e-aplicacoes/), INCT Materials Informatics (Grant No. 406447/2022-5), and CNPq (Grant No. 311324/2020-7).

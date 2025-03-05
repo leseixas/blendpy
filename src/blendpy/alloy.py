@@ -41,13 +41,12 @@ class Alloy(Atoms):
         _store_chemical_elements():
         get_chemical_elements():
     '''
-    def __init__(self, alloy_components: list, sublattice_alloy = None):
+    def __init__(self, alloy_components: list):
         """
         Initialize a new instance of the Alloy class.
 
         Parameters:
         alloy_components (list): A list of alloy components.
-        sublattice_alloy (optional): An optional parameter for sublattice alloy. Default is None.
 
         Attributes:
         alloy_components (list): Stores the alloy components.
@@ -56,10 +55,8 @@ class Alloy(Atoms):
         """
         super().__init__(symbols=[], positions=[])
         self.alloy_components = alloy_components
-        self._chemical_elements = []  # To store the unique chemical elements for each file
+        self._chemical_elements = []  # To store the chemical elements for each file
         self._store_chemical_elements()
-        self.sublattice_alloy = sublattice_alloy
-
 
     def _store_chemical_elements(self):
         """
@@ -82,11 +79,11 @@ class Alloy(Atoms):
 
     def get_chemical_elements(self):
         """
-        Retrieve the set of chemical elements present in the alloy.
+        Retrieve the list of chemical elements in the alloy.
         Returns:
-            set: A set containing the chemical elements.
+            list: A list containing the chemical elements present in the alloy.
         """
-        return set(self._chemical_elements)
+        return self._chemical_elements
     
     
     def get_configurational_entropy(self, eps: float = 1.e-4, npoints: int = 101):

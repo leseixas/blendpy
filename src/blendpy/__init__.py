@@ -36,7 +36,7 @@ from ase import __version__ as __ase_version__
 from numpy import __version__ as __numpy_version__
 from pandas import __version__ as __pandas_version__
 
-from ._version import __version__
+from ._version import __version__, __pyproject_version__
 from .constants import R, convert_eVatom_to_kJmol
 from .alloy import Alloy
 from .dsi_model import DSIModel
@@ -75,15 +75,15 @@ banner_small()
 
 print(f"\033[36m    version:\033[0m {__version__}                             ")
 print("                                                  ")
-print("\033[36m    Developed by:\033[0m Leandro Seixas, PhD             ")
+print("\033[36m    developed by:\033[0m Leandro Seixas, PhD             ")
 print("                                                  ")
 print("-----------------------------------------------")
 print("                                               ")
 print("System:")
-print(f"├── \033[36mUSER:\033[0m {os.environ['USER']}")
-print(f"├── \033[36mHOSTNAME:\033[0m {gethostname()}")
-print(f"├── \033[36mPWD:\033[0m {os.environ['PWD']}")
-print(f"└── \033[36mDATE:\033[0m {datetime.today().strftime("%Y-%m-%d, %H:%M:%S")}")
+print(f"├── \033[36muser:\033[0m {os.environ['USER']}")
+print(f"├── \033[36mhostname:\033[0m {gethostname()}")
+print(f"├── \033[36mcwd:\033[0m {os.getcwd()}")
+print(f"└── \033[36mdate:\033[0m {datetime.today().strftime("%Y-%m-%d, %H:%M:%S")}")
 print("                                               ")
 print("Python:")
 print(f"├── \033[36mversion:\033[0m {__python_version__}      ")

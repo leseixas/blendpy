@@ -24,4 +24,21 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-__version__ = '25.3.26'
+import os
+import tomllib
+
+# Get the directory of the current file
+current_file_dir = os.path.dirname(os.path.abspath(__file__))
+
+# Compute the package root by going up two levels:
+package_root = os.path.abspath(os.path.join(current_file_dir, '..', '..'))
+
+# Construct the full path to pyproject.toml
+pyproject_path = os.path.join(package_root, 'pyproject.toml')
+
+with open(pyproject_path, "rb") as f:
+    config = tomllib.load(f)
+
+__pyproject_version__ = config["project"]["version"]
+
+__version__ = '25.3.27'

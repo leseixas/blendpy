@@ -4,14 +4,14 @@ build-backend = "hatchling.build"
 
 [project]
 name = "blendpy"
-version = "25.3.26"
+version = "25.3.27"
 authors = [
   { name="Leandro Seixas", email="leandro.fisica@gmail.com" },
 ]
 description = "Blendpy uses atomistic simulations with ASE calculators to compute alloy properties like enthalpy of mixing. It supports binary and multicomponent systems, including alloys and pseudoalloys."
 readme = "README.md"
 license = {file = "LICENSE"} 
-requires-python = ">=3.9"
+requires-python = ">=3.11"
 dependencies = [
     'numpy',
     'pandas',

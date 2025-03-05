@@ -158,12 +158,7 @@ class DSIModel(Alloy):
         return dilute_supercells_matrix
 
 
-    def optimize(self,
-                 method=BFGSLineSearch,
-                 fmax: float = 0.01,
-                 steps: int = 500,
-                 logfile: str = 'optimize.log',
-                 mask: list = [1,1,1,1,1,1]):
+    def optimize(self, method=BFGSLineSearch, fmax: float = 0.01, steps: int = 500, logfile: str = 'optimize.log', mask: list = [1,1,1,1,1,1]):
         """
         Atoms objects are optimized according to the specified optimization method and parameters.
         
@@ -246,9 +241,13 @@ class DSIModel(Alloy):
         Raises:
             ValueError: If not all supercells have the same number of atoms.
         """
+        print("-----------------------------------------------")
+        print("\033[36mDiluting parameters matrix (in kJ/mol)\033[0m")
+        print("-----------------------------------------------")
+
         number_atoms_list = [ len(atoms) for row in self.dilute_alloys for atoms in row ]
         if len(set(number_atoms_list)) != 1:
-            raise ValueError(f"Not all supercells have the same number of atoms: {number_atoms_list}.")
+            raise NotImplementedError(f"Not all supercells have the same number of atoms: {number_atoms_list}.")
         n  = self.n_components
         x = 1/number_atoms_list[0] # dilution parameter
 
@@ -259,13 +258,10 @@ class DSIModel(Alloy):
                 m_dsi[i,j] = energy[i,j] - ((1-x)*energy[i,i] + x * energy[j,j])
 
         m_dsi_kjmol = m_dsi * convert_eVatom_to_kJmol # converting value to kJ/mol
-        
-        print("-----------------------------------------------")
-        print("\033[36mDiluting parameters matrix (in kJ/mol)\033[0m")
-        print("-----------------------------------------------")
-        print(m_dsi_kjmol)
 
+        print(m_dsi_kjmol)
         self.diluting_parameters = m_dsi_kjmol
+        
         return m_dsi_kjmol
 
 

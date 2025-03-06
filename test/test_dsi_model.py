@@ -7,7 +7,10 @@ from ase import Atoms
 from ase.io import read
 from ase.calculators.emt import EMT
 from blendpy.dsi_model import DSIModel
+from ase.optimize import BFGS
+import numpy as np
 
+# Fixtures
 @pytest.fixture
 def setup_data():
     """
@@ -26,6 +29,7 @@ def setup_data():
     doping_site = 0
     return alloy_components, supercell, calculator, doping_site
 
+# Tests
 def test_initialization_without_calculator(setup_data):
     """
     Test the initialization of the DSIModel without a calculator.
@@ -56,6 +60,7 @@ def test_initialization_without_calculator(setup_data):
         for atoms in row:
             assert isinstance(atoms, Atoms)
             assert atoms.calc is None
+
 
 def test_initialization_with_calculator(setup_data):
     """
@@ -89,6 +94,7 @@ def test_initialization_with_calculator(setup_data):
         for atoms in row:
             assert atoms.calc is not None
             assert 'energy' in atoms.info
+
 
 def test_initialization_with_diluting_parameters(setup_data):
     """
@@ -194,4 +200,218 @@ def test_create_dilute_alloys(setup_data):
     for i in range(n):
         for j in range(n):
             assert dilute_alloys[i][j].get_chemical_symbols()[doping_site] == dopant[j]
+
+
+def test_optimize_with_default_parameters(setup_data):
+    """
+    Test the optimize method of the DSIModel class with default parameters.
+
+    This test verifies that the optimize method correctly optimizes the Atoms objects
+    in the dilute_alloys attribute using the default optimization method and parameters.
+    It checks the following:
+    
+    - The method runs without errors.
+    - The total energy of each Atoms object is updated after optimization.
+
+    Args:
+        setup_data (tuple): A tuple containing alloy_components, supercell, calculator, and doping_site.
+    """
+    alloy_components, supercell, calculator, doping_site = setup_data
+    model = DSIModel(alloy_components=alloy_components, supercell=supercell, calculator=calculator, doping_site=doping_site)
+    
+    model.optimize()
+    
+    for row in model.dilute_alloys:
+        for atoms in row:
+            assert 'energy' in atoms.info
+            assert atoms.info['energy'] is not None
+
+
+def test_optimize_with_custom_parameters(setup_data):
+    """
+    Test the optimize method of the DSIModel class with custom parameters.
+
+    This test verifies that the optimize method correctly optimizes the Atoms objects
+    in the dilute_alloys attribute using custom optimization parameters. It checks the following:
+    
+    - The method runs without errors.
+    - The total energy of each Atoms object is updated after optimization.
+    - The custom parameters are correctly applied.
+
+    Args:
+        setup_data (tuple): A tuple containing alloy_components, supercell, calculator, and doping_site.
+    """
+    alloy_components, supercell, calculator, doping_site = setup_data
+    model = DSIModel(alloy_components=alloy_components, supercell=supercell, calculator=calculator, doping_site=doping_site)
+    
+    custom_method = BFGS
+    custom_fmax = 0.05
+    custom_steps = 300
+    custom_logfile = 'custom_optimize.log'
+    custom_mask = [1, 1, 0, 0, 1, 1]
+    
+    model.optimize(method=custom_method, fmax=custom_fmax, steps=custom_steps, logfile=custom_logfile, mask=custom_mask)
+    
+    for row in model.dilute_alloys:
+        for atoms in row:
+            assert 'energy' in atoms.info
+            assert atoms.info['energy'] is not None
+
+
+# set_energy_matrix
+def test_set_energy_matrix_with_invalid_dtype(setup_data):
+    """
+    Test the set_energy_matrix method of the DSIModel class with an invalid dtype.
+
+    This test verifies that the set_energy_matrix method raises a ValueError when provided
+    with a numpy array that does not have a floating-point dtype. It checks the following:
+    
+    - The method raises a ValueError with the appropriate error message.
+
+    Args:
+        setup_data (tuple): A tuple containing alloy_components, supercell, calculator, and doping_site.
+    """
+    alloy_components, supercell, calculator, doping_site = setup_data
+    model = DSIModel(alloy_components=alloy_components, supercell=supercell, calculator=calculator, doping_site=doping_site)
+    
+    invalid_energy_matrix_int = np.array([[1, 2], [3, 4]])  # Integer dtype
+    with pytest.raises(ValueError, match="The energy matrix must be a nd.array of floats."):
+        model.set_energy_matrix(invalid_energy_matrix_int)
+
+    invalid_energy_matrix_str = np.array([["a", "b"], ["c", "d"]])  # float dtype
+    with pytest.raises(ValueError, match="The energy matrix must be a nd.array of floats."):
+        model.set_energy_matrix(invalid_energy_matrix_str)
+
+
+def test_set_energy_matrix_with_invalid_shape(setup_data):
+    """
+    Test the set_energy_matrix method of the DSIModel class with an invalid shape.
+
+    This test verifies that the set_energy_matrix method raises a ValueError when provided
+    with a numpy array that does not have the correct shape. It checks the following:
+    
+    - The method raises a ValueError with the appropriate error message.
+
+    Args:
+        setup_data (tuple): A tuple containing alloy_components, supercell, calculator, and doping_site.
+    """
+    alloy_components, supercell, calculator, doping_site = setup_data
+    model = DSIModel(alloy_components=alloy_components, supercell=supercell, calculator=calculator, doping_site=doping_site)
+    
+    invalid_energy_matrix = np.array([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]])  # Incorrect shape
+    with pytest.raises(ValueError, match="The energy matrix must have the same shape as the number of components."):
+        model.set_energy_matrix(invalid_energy_matrix)
+
+
+def test_set_energy_matrix_with_valid_input(setup_data):
+    """
+    Test the set_energy_matrix method of the DSIModel class with valid input.
+
+    This test verifies that the set_energy_matrix method correctly sets the energy matrix
+    for the model when provided with a valid numpy array. It checks the following:
+    
+    - The energy matrix is correctly set in the model.
+    - The energy matrix is of type numpy.ndarray.
+    - The values in the energy matrix match the provided input.
+
+    Args:
+        setup_data (tuple): A tuple containing alloy_components, supercell, calculator, and doping_site.
+    """
+    alloy_components, supercell, calculator, doping_site = setup_data
+    model = DSIModel(alloy_components=alloy_components, supercell=supercell, calculator=calculator, doping_site=doping_site)
+    
+    energy_matrix = np.array([[1.0, 2.0], [3.0, 4.0]])
+    model.set_energy_matrix(energy_matrix)
+    
+    assert isinstance(model._energy_matrix, np.ndarray)
+    assert np.array_equal(model._energy_matrix, energy_matrix)
+
+
+# get_energy_matrix
+def test_get_energy_matrix_with_precomputed_matrix(setup_data):
+    """
+    Test the get_energy_matrix method of the DSIModel class when the energy matrix is precomputed.
+
+    This test verifies that the get_energy_matrix method correctly returns the precomputed energy matrix
+    when it is already set in the model. It checks the following:
+    
+    - The method returns the precomputed energy matrix.
+    - The returned energy matrix is of type numpy.ndarray.
+    - The values in the returned energy matrix match the precomputed matrix.
+
+    Args:
+        setup_data (tuple): A tuple containing alloy_components, supercell, calculator, and doping_site.
+    """
+    alloy_components, supercell, calculator, doping_site = setup_data
+    model = DSIModel(alloy_components=alloy_components, supercell=supercell, calculator=calculator, doping_site=doping_site)
+    
+    precomputed_energy_matrix = np.array([[1.0, 2.0], [3.0, 4.0]])
+    model.set_energy_matrix(precomputed_energy_matrix)
+    
+    energy_matrix = model.get_energy_matrix()
+    
+    assert isinstance(energy_matrix, np.ndarray)
+    assert np.array_equal(energy_matrix, precomputed_energy_matrix)
+
+
+def test_get_energy_matrix_with_calculated_matrix(setup_data):
+    """
+    Test the get_energy_matrix method of the DSIModel class when the energy matrix needs to be calculated.
+
+    This test verifies that the get_energy_matrix method correctly calculates and returns the energy matrix
+    when it is not precomputed. It checks the following:
+    
+    - The method calculates the energy matrix.
+    - The returned energy matrix is of type numpy.ndarray.
+    - The values in the returned energy matrix are correctly calculated based on the potential energy of the atoms.
+
+    Args:
+        setup_data (tuple): A tuple containing alloy_components, supercell, calculator, and doping_site.
+    """
+    alloy_components, supercell, calculator, doping_site = setup_data
+    model = DSIModel(alloy_components=alloy_components, supercell=supercell, calculator=calculator, doping_site=doping_site)
+    
+    energy_matrix = model.get_energy_matrix()
+    
+    assert isinstance(energy_matrix, np.ndarray)
+    assert energy_matrix.shape == (len(alloy_components), len(alloy_components))
+    
+    for i, row in enumerate(model.dilute_alloys):
+        for j, atoms in enumerate(row):
+            assert energy_matrix[i, j] == atoms.info['energy']
+
+
+def test_get_energy_matrix_with_missing_energy_info(setup_data):
+    """
+    Test the get_energy_matrix method of the DSIModel class when some atoms are missing energy info.
+
+    This test verifies that the get_energy_matrix method correctly calculates the energy for atoms
+    that are missing the 'energy' info in their info dictionary. It checks the following:
+    
+    - The method calculates the missing energy values.
+    - The returned energy matrix is of type numpy.ndarray.
+    - The values in the returned energy matrix are correctly calculated based on the potential energy of the atoms.
+
+    Args:
+        setup_data (tuple): A tuple containing alloy_components, supercell, calculator, and doping_site.
+    """
+    alloy_components, supercell, calculator, doping_site = setup_data
+    model = DSIModel(alloy_components=alloy_components, supercell=supercell, calculator=calculator, doping_site=doping_site)
+    
+    # Remove 'energy' from atoms.info
+    for row in model.dilute_alloys:
+        for atoms in row:
+            if 'energy' in atoms.info:
+                del atoms.info['energy']
+    
+    energy_matrix = model.get_energy_matrix()
+    
+    assert isinstance(energy_matrix, np.ndarray)
+    assert energy_matrix.shape == (len(alloy_components), len(alloy_components))
+    
+    for i, row in enumerate(model.dilute_alloys):
+        for j, atoms in enumerate(row):
+            assert 'energy' in atoms.info
+            assert energy_matrix[i, j] == atoms.info['energy']
+
 

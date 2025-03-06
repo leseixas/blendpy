@@ -194,7 +194,14 @@ class DSIModel(Alloy):
         Parameters:
         energy_matrix (np.ndarray): A numpy array representing the energy matrix to be set.
         """
-        self._energy_matrix = np.array(energy_matrix)
+        energy_matrix = np.array(energy_matrix)
+        if energy_matrix.ndim != 2:
+            raise ValueError("The energy matrix must be a 2D numpy array.")
+        if not np.issubdtype(energy_matrix.dtype, np.floating):
+            raise ValueError("The energy matrix must be a nd.array of floats.")
+        if energy_matrix.shape != (self.n_components, self.n_components):
+            raise ValueError("The energy matrix must have the same shape as the number of components.")
+        self._energy_matrix = energy_matrix
 
     
     def get_energy_matrix(self) -> np.ndarray:

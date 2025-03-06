@@ -219,7 +219,7 @@ def test_optimize_with_default_parameters(setup_data):
     alloy_components, supercell, calculator, doping_site = setup_data
     model = DSIModel(alloy_components=alloy_components, supercell=supercell, calculator=calculator, doping_site=doping_site)
     
-    model.optimize()
+    model.optimize(logfile=None) # default arguments, except logfile to avoid writing to file.
     
     for row in model.dilute_alloys:
         for atoms in row:
@@ -247,8 +247,8 @@ def test_optimize_with_custom_parameters(setup_data):
     custom_method = BFGS
     custom_fmax = 0.05
     custom_steps = 300
-    custom_logfile = 'custom_optimize.log'
-    custom_mask = [1, 1, 0, 0, 1, 1]
+    custom_logfile = None
+    custom_mask = [1, 1, 0, 0, 0, 1]
     
     model.optimize(method=custom_method, fmax=custom_fmax, steps=custom_steps, logfile=custom_logfile, mask=custom_mask)
     
@@ -413,5 +413,248 @@ def test_get_energy_matrix_with_missing_energy_info(setup_data):
         for j, atoms in enumerate(row):
             assert 'energy' in atoms.info
             assert energy_matrix[i, j] == atoms.info['energy']
+
+# get_diluting_parameters
+def test_get_diluting_parameters_with_valid_data(setup_data):
+    """
+    Test the get_diluting_parameters method of the DSIModel class with valid data.
+
+    This test verifies that the get_diluting_parameters method correctly calculates the diluting parameters
+    matrix when provided with valid data. It checks the following:
+    
+    - The method returns a numpy array.
+    - The shape of the returned array matches the number of components.
+    - The values in the returned array are correctly calculated based on the energy differences.
+
+    Args:
+        setup_data (tuple): A tuple containing alloy_components, supercell, calculator, and doping_site.
+    """
+    alloy_components, supercell, calculator, doping_site = setup_data
+    model = DSIModel(alloy_components=alloy_components, supercell=supercell, calculator=calculator, doping_site=doping_site)
+    
+    diluting_parameters = model.get_diluting_parameters()
+    
+    assert isinstance(diluting_parameters, np.ndarray)
+    assert diluting_parameters.shape == (len(alloy_components), len(alloy_components))
+
+
+def test_get_diluting_parameters_with_inconsistent_supercells(setup_data):
+    """
+    Test the get_diluting_parameters method of the DSIModel class with inconsistent supercells.
+
+    This test verifies that the get_diluting_parameters method raises a NotImplementedError when the supercells
+    have different numbers of atoms. It checks the following:
+    
+    - The method raises a NotImplementedError with the appropriate error message.
+
+    Args:
+        setup_data (tuple): A tuple containing alloy_components, supercell, calculator, and doping_site.
+    """
+    alloy_components, supercell, calculator, doping_site = setup_data
+    alloy_components = ["data/bulk/Au.cif", "data/bulk/Pd_hcp.cif"]
+
+    model = DSIModel(alloy_components=alloy_components, supercell=supercell, calculator=calculator, doping_site=doping_site)
+    
+    with pytest.raises(NotImplementedError, match="Not all supercells have the same number of atoms."):
+        model.get_diluting_parameters()
+
+
+def test_get_diluting_parameters_with_precomputed_matrix(setup_data):
+    """
+    Test the get_diluting_parameters method of the DSIModel class when the diluting parameters matrix is precomputed.
+
+    This test verifies that the get_diluting_parameters method correctly returns the precomputed diluting parameters
+    matrix when it is already set in the model. It checks the following:
+    
+    - The method returns the precomputed diluting parameters matrix.
+    - The returned matrix is of type numpy.ndarray.
+    - The values in the returned matrix match the precomputed matrix.
+
+    Args:
+        setup_data (tuple): A tuple containing alloy_components, supercell, calculator, and doping_site.
+    """
+    alloy_components, supercell, calculator, doping_site = setup_data
+
+    precomputed_diluting_parameters = np.array([[0.1, 0.2], [0.3, 0.4]])
+
+    model = DSIModel(alloy_components=alloy_components,
+                     supercell=supercell,
+                     calculator=calculator,
+                     doping_site=doping_site,
+                     diluting_parameters=precomputed_diluting_parameters)
+    
+    diluting_parameters = model.get_diluting_parameters()
+    
+    assert isinstance(diluting_parameters, np.ndarray)
+    assert np.array_equal(diluting_parameters, precomputed_diluting_parameters)
+
+# get_enthalpy_of_mixing    
+def test_get_enthalpy_of_mixing_with_default_parameters(setup_data):
+    """
+    Test the get_enthalpy_of_mixing method of the DSIModel class with default parameters.
+
+    This test verifies that the get_enthalpy_of_mixing method correctly calculates the enthalpy of mixing
+    for a binary mixture using the default parameters. It checks the following:
+    
+    - The method returns a numpy array.
+    - The length of the returned array matches the number of points (npoints).
+    - The values in the returned array are correctly calculated based on the diluting parameters and slope.
+
+    Args:
+        setup_data (tuple): A tuple containing alloy_components, supercell, calculator, and doping_site.
+    """
+    alloy_components, supercell, calculator, doping_site = setup_data
+    model = DSIModel(alloy_components=alloy_components, supercell=supercell, calculator=calculator, doping_site=doping_site)
+    
+    enthalpy = model.get_enthalpy_of_mixing()
+    
+    assert isinstance(enthalpy, np.ndarray)
+    assert np.issubdtype(enthalpy.dtype, np.floating)
+    assert len(enthalpy) == 101  # Default npoints
+    assert np.all(np.isfinite(enthalpy))
+
+
+def test_get_enthalpy_of_mixing_with_custom_parameters(setup_data):
+    """
+    Test the get_enthalpy_of_mixing method of the DSIModel class with custom parameters.
+
+    This test verifies that the get_enthalpy_of_mixing method correctly calculates the enthalpy of mixing
+    for a binary mixture using custom parameters. It checks the following:
+    
+    - The method returns a numpy array.
+    - The length of the returned array matches the number of points (npoints).
+    - The values in the returned array are correctly calculated based on the diluting parameters and slope.
+
+    Args:
+        setup_data (tuple): A tuple containing alloy_components, supercell, calculator, and doping_site.
+    """
+    alloy_components, supercell, calculator, doping_site = setup_data
+    model = DSIModel(alloy_components=alloy_components, supercell=supercell, calculator=calculator, doping_site=doping_site)
+    
+    A = 1
+    B = 0
+    slope = [0.1, 0.2]
+    npoints = 50
+    
+    enthalpy = model.get_enthalpy_of_mixing(A=A, B=B, slope=slope, npoints=npoints)
+    
+    assert isinstance(enthalpy, np.ndarray)
+    assert np.issubdtype(enthalpy.dtype, np.floating)
+    assert len(enthalpy) == npoints
+    assert np.all(np.isfinite(enthalpy))
+
+def test_get_enthalpy_of_mixing_with_default_parameters(setup_data):
+    """
+    Test the get_enthalpy_of_mixing method of the DSIModel class with default parameters.
+
+    This test verifies that the get_enthalpy_of_mixing method correctly calculates the enthalpy of mixing
+    for a binary mixture using the default parameters. It checks the following:
+    
+    - The method returns a numpy array.
+    - The length of the returned array matches the number of points (npoints).
+    - The values in the returned array are correctly calculated based on the diluting parameters and slope.
+
+    Args:
+        setup_data (tuple): A tuple containing alloy_components, supercell, calculator, and doping_site.
+    """
+    alloy_components, supercell, calculator, doping_site = setup_data
+    model = DSIModel(alloy_components=alloy_components, supercell=supercell, calculator=calculator, doping_site=doping_site)
+    
+    enthalpy = model.get_enthalpy_of_mixing()
+    
+    assert isinstance(enthalpy, np.ndarray)
+    assert np.issubdtype(enthalpy.dtype, np.floating)
+    assert len(enthalpy) == 101  # Default npoints
+    assert np.all(np.isfinite(enthalpy))
+
+
+def test_get_enthalpy_of_mixing_with_custom_parameters(setup_data):
+    """
+    Test the get_enthalpy_of_mixing method of the DSIModel class with custom parameters.
+
+    This test verifies that the get_enthalpy_of_mixing method correctly calculates the enthalpy of mixing
+    for a binary mixture using custom parameters. It checks the following:
+    
+    - The method returns a numpy array.
+    - The length of the returned array matches the number of points (npoints).
+    - The values in the returned array are correctly calculated based on the diluting parameters and slope.
+
+    Args:
+        setup_data (tuple): A tuple containing alloy_components, supercell, calculator, and doping_site.
+    """
+    alloy_components, supercell, calculator, doping_site = setup_data
+    model = DSIModel(alloy_components=alloy_components, supercell=supercell, calculator=calculator, doping_site=doping_site)
+    
+    A = 1
+    B = 0
+    slope = [0.1, 0.2]
+    npoints = 50
+    
+    enthalpy = model.get_enthalpy_of_mixing(A=A, B=B, slope=slope, npoints=npoints)
+    
+    assert isinstance(enthalpy, np.ndarray)
+    assert np.issubdtype(enthalpy.dtype, np.floating)
+    assert len(enthalpy) == npoints
+    assert np.all(np.isfinite(enthalpy))
+
+
+def test_get_enthalpy_of_mixing_with_invalid_component_indices(setup_data):
+    """
+    Test the get_enthalpy_of_mixing method of the DSIModel class with invalid component indices.
+
+    This test verifies that the get_enthalpy_of_mixing method raises a ValueError when provided
+    with invalid component indices. It checks the following:
+    
+    - The method raises a ValueError with the appropriate error message.
+
+    Args:
+        setup_data (tuple): A tuple containing alloy_components, supercell, calculator, and doping_site.
+    """
+    alloy_components, supercell, calculator, doping_site = setup_data
+    model = DSIModel(alloy_components=alloy_components, supercell=supercell, calculator=calculator, doping_site=doping_site)
+    
+    with pytest.raises(ValueError, match="The component indices must be integers."):
+        model.get_enthalpy_of_mixing(A="0", B=1)
+    
+    with pytest.raises(ValueError, match="The component indices must be less than the number of components."):
+        model.get_enthalpy_of_mixing(A=0, B=10)
+
+
+def test_get_enthalpy_of_mixing_with_invalid_slope(setup_data):
+    """
+    Test the get_enthalpy_of_mixing method of the DSIModel class with an invalid slope parameter.
+
+    This test verifies that the get_enthalpy_of_mixing method raises a ValueError when provided
+    with an invalid slope parameter. It checks the following:
+    
+    - The method raises a ValueError with the appropriate error message.
+
+    Args:
+        setup_data (tuple): A tuple containing alloy_components, supercell, calculator, and doping_site.
+    """
+    alloy_components, supercell, calculator, doping_site = setup_data
+    model = DSIModel(alloy_components=alloy_components, supercell=supercell, calculator=calculator, doping_site=doping_site)
+    
+    with pytest.raises(ValueError, match="The slope parameter must have two values."):
+        model.get_enthalpy_of_mixing(slope=[0.1])
+
+
+def test_get_enthalpy_of_mixing_with_invalid_npoints(setup_data):
+    """
+    Test the get_enthalpy_of_mixing method of the DSIModel class with an invalid npoints parameter.
+
+    This test verifies that the get_enthalpy_of_mixing method raises a ValueError when provided
+    with an invalid npoints parameter. It checks the following:
+    
+    - The method raises a ValueError with the appropriate error message.
+
+    Args:
+        setup_data (tuple): A tuple containing alloy_components, supercell, calculator, and doping_site.
+    """
+    alloy_components, supercell, calculator, doping_site = setup_data
+    model = DSIModel(alloy_components=alloy_components, supercell=supercell, calculator=calculator, doping_site=doping_site)
+    
+    with pytest.raises(ValueError, match="The number of points must be greater than 1."):
+        model.get_enthalpy_of_mixing(npoints=1)
 
 

@@ -252,25 +252,29 @@ class DSIModel(Alloy):
         print("\033[36mDiluting parameters matrix (in kJ/mol)\033[0m")
         print("-----------------------------------------------")
 
-        number_atoms_list = [ len(atoms) for row in self.dilute_alloys for atoms in row ]
-        if len(set(number_atoms_list)) != 1:
-            raise NotImplementedError(f"Not all supercells have the same number of atoms: {number_atoms_list}.")
-        n  = self.n_components
-        x = 1/number_atoms_list[0] # dilution parameter
+        if self.diluting_parameters is not None:
+            return self.diluting_parameters
+        else:
+            dilute_alloys_flatten = [ atoms for row in self.dilute_alloys for atoms in row]
+            number_atoms_list = [ len(atoms) for atoms in dilute_alloys_flatten ]
 
-        m_dsi = np.zeros((n,n), dtype=float)
-        energy = self.get_energy_matrix()
-        for i, row in enumerate(self.dilute_alloys):
-            for j in range(len(row)):
-                m_dsi[i,j] = energy[i,j] - ((1-x)*energy[i,i] + x * energy[j,j])
+            if len(set(number_atoms_list)) != 1:
+                raise NotImplementedError(f"Not all supercells have the same number of atoms.")
+            n  = self.n_components
+            x = 1/number_atoms_list[0] # dilution parameter
 
-        m_dsi_kjmol = m_dsi * convert_eVatom_to_kJmol # converting value to kJ/mol
+            m_dsi = np.zeros((n,n), dtype=float)
+            energy = self.get_energy_matrix()
+            for i, row in enumerate(self.dilute_alloys):
+                for j in range(len(row)):
+                    m_dsi[i,j] = energy[i,j] - ((1-x)*energy[i,i] + x * energy[j,j])
 
-        print(m_dsi_kjmol)
-        self.diluting_parameters = m_dsi_kjmol
-        
-        return m_dsi_kjmol
+            m_dsi_kjmol = m_dsi * convert_eVatom_to_kJmol # converting value to kJ/mol
 
+            print(m_dsi_kjmol)
+            self.diluting_parameters = m_dsi_kjmol
+            return m_dsi_kjmol
+            
 
     def get_enthalpy_of_mixing(self, A: int = 0, B: int = 1, slope: list = [0,0], npoints: int = 101) -> np.ndarray:
         """
@@ -285,12 +289,23 @@ class DSIModel(Alloy):
         Returns:
         numpy.ndarray: Array of enthalpy values corresponding to the molar fraction range.
         """
+        if not (isinstance(A, int) and isinstance(B, int)):
+            raise ValueError("The component indices must be integers.")
+        if A >= self.n_components or B >= self.n_components:
+            raise ValueError("The component indices must be less than the number of components.")
+        if len(slope) != 2: 
+            raise ValueError("The slope parameter must have two values.")
+        if npoints < 2:
+            raise ValueError("The number of points must be greater than 1.")
+        
         x = np.linspace(0, 1, npoints)
-        if self.diluting_parameters is None:
-            print("Determining dilution parameters in enthalpy of mixing calculations...")
-            m_dsi = self.get_diluting_parameters()
-        else:
-            m_dsi = self.diluting_parameters
-            
+        # if self.diluting_parameters is None:
+        #     # print("Determining dilution parameters in enthalpy of mixing calculations...")
+        #     # m_dsi = self.get_diluting_parameters()
+        # else:
+        #     m_dsi = self.diluting_parameters
+
+        m_dsi = self.get_diluting_parameters()
+
         enthalpy = m_dsi[A,B] * x * (1-x)**2 + m_dsi[B,A] * x**2 * (1-x) + (1-x) * slope[0] + x * slope[1]
         return np.array(enthalpy)

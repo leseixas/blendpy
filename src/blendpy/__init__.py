@@ -36,6 +36,8 @@ from sys import executable as __python_executable__
 from ase import __version__ as __ase_version__
 from numpy import __version__ as __numpy_version__
 from pandas import __version__ as __pandas_version__
+from pytest import __version__ as __pytest_version__
+from yaml import __version__ as __yaml_version__
 
 from ._version import __version__
 from .constants import R, convert_eVatom_to_kJmol
@@ -49,37 +51,55 @@ from .phase_diagram import PhaseDiagram
 
 __all__ = ['Alloy', 'DSIModel', 'Polymorph', 'PhaseDiagram']
 
+ansi_colors = {'black': ["\033[30m", "\033[0m"],
+               'red': ["\033[31m", "\033[0m"],
+               'green': ["\033[32m", "\033[0m"],
+               'yellow': ["\033[33m", "\033[0m"],
+               'blue': ["\033[34m", "\033[0m"],
+               'magenta': ["\033[35m", "\033[0m"],
+               'cyan': ["\033[36m", "\033[0m"],
+               'white': ["\033[37m", "\033[0m"],
+               'empty': ["", ""],
+               'bold': ["\033[1m", "\033[0m"],
+               'underline': ["\033[4m", "\033[0m"],
+               'blink': ["\033[5m", "\033[0m"],
+               'reverse': ["\033[7m", "\033[0m"],
+               'invisible': ["\033[8m", "\033[0m"]}
 
-def starter():
-    print("                                   ")
-    print("\033[36m     _   _           _             \033[0m")
-    print("\033[36m    | |_| |___ ___ _| |___ _ _     \033[0m")
-    print("\033[36m    | . | | -_|   | . | . | | |    \033[0m")
-    print("\033[36m    |___|_|___|_|_|___|  _|_  |    \033[0m")
-    print("\033[36m                      |_| |___|    \033[0m")
-    print("                                   ")
-    print(f"\033[36m    version:\033[0m {__version__}                             ")
+
+def starter(color='cyan'):
+    color_start, color_end = ansi_colors[color]
     print("                                                  ")
-    print("\033[36m    developed by:\033[0m Leandro Seixas, PhD             ")
+    print(f"{color_start}     _   _           _             {color_end}")
+    print(f"{color_start}    | |_| |___ ___ _| |___ _ _     {color_end}")
+    print(f"{color_start}    | . | | -_|   | . | . | | |    {color_end}")
+    print(f"{color_start}    |___|_|___|_|_|___|  _|_  |    {color_end}")
+    print(f"{color_start}                      |_| |___|    {color_end}")
     print("                                                  ")
-    print("-----------------------------------------------")
-    print("                                               ")
+    print(f"{color_start}    version:{color_end} {__version__}                              ")
+    print(f"{color_start}    developed by:{color_end} Leandro Seixas, PhD             ")
+    print(f"{color_start}    homepage:{color_end} https://github.com/leseixas/blendpy")
+    print("                                                  ")
+    print("--------------------------------------------------")
+    print("                                                  ")
     print("System:")
-    print(f"├── \033[36marchitecture:\033[0m {platform.machine()}")
-    print(f"├── \033[36msystem:\033[0m {platform.system()}")
-    print(f"├── \033[36muser:\033[0m {os.environ['USER']}")
-    print(f"├── \033[36mhostname:\033[0m {gethostname()}")
-    print(f"├── \033[36mcwd:\033[0m {os.getcwd()}")
-    print(f"└── \033[36mdate:\033[0m {datetime.today().strftime("%Y-%m-%d, %H:%M:%S")}")
+    print(f"├── {color_start}architecture:{color_end} {platform.machine()}")
+    print(f"├── {color_start}platform:{color_end} {platform.system()}")
+    print(f"├── {color_start}user:{color_end} {os.environ['USER']}")
+    print(f"├── {color_start}hostname:{color_end} {gethostname()}")
+    print(f"├── {color_start}cwd:{color_end} {os.getcwd()}")
+    print(f"└── {color_start}date:{color_end} {datetime.today().strftime("%Y-%m-%d, %H:%M:%S")}")
     print("                                               ")
     print("Python:")
-    print(f"├── \033[36mversion:\033[0m {__python_version__}      ")
-    print(f"└── \033[36mexecutable:\033[0m {__python_executable__}      ")
+    print(f"├── {color_start}version:{color_end} {__python_version__}      ")
+    print(f"└── {color_start}executable:{color_end} {__python_executable__}      ")
     print("                                               ")
     print("Dependencies:")
-    print(f"├── \033[36mase version:\033[0m {__ase_version__}")
-    print(f"├── \033[36mnumpy version:\033[0m {__numpy_version__}")
-    print(f"└── \033[36mpandas version:\033[0m {__pandas_version__}")
+    print(f"├── {color_start}ase version:{color_end} {__ase_version__}")
+    print(f"├── {color_start}numpy version:{color_end} {__numpy_version__}")
+    print(f"├── {color_start}pandas version:{color_end} {__pandas_version__}")
+    print(f"├── {color_start}pytest version:{color_end} {__pytest_version__}")
+    print(f"└── {color_start}yaml version:{color_end} {__yaml_version__}")
     print("                                               ")
 
 

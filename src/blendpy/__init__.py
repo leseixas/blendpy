@@ -28,6 +28,7 @@ import warnings
 warnings.filterwarnings("ignore")
 
 import os
+import platform
 from datetime import datetime
 from socket import gethostname
 from sys import version as __python_version__
@@ -48,20 +49,8 @@ from .phase_diagram import PhaseDiagram
 
 __all__ = ['Alloy', 'DSIModel', 'Polymorph', 'PhaseDiagram']
 
-def banner_large():
-    print("                                                  ")
-    print("  \033[36m  _     _                _             \033[0m")
-    print("  \033[36m | |   | |              | |            \033[0m")
-    print("  \033[36m | |__ | | ___ _ __   __| |_ __  _   _ \033[0m")
-    print("  \033[36m | '_ \\| |/ _ \\ '_ \\ / _` | '_ \\| | | |\033[0m")
-    print("  \033[36m | |_) | |  __/ | | | (_| | |_) | |_| |\033[0m")
-    print("  \033[36m |_.__/|_|\\___|_| |_|\\__,_| .__/ \\__, |\033[0m")
-    print("  \033[36m                          | |     __/ |\033[0m")
-    print("  \033[36m                          |_|    |___/ \033[0m")
-    print("                                                  ")
 
-
-def banner_small():
+def starter():
     print("                                   ")
     print("\033[36m     _   _           _             \033[0m")
     print("\033[36m    | |_| |___ ___ _| |___ _ _     \033[0m")
@@ -69,28 +58,29 @@ def banner_small():
     print("\033[36m    |___|_|___|_|_|___|  _|_  |    \033[0m")
     print("\033[36m                      |_| |___|    \033[0m")
     print("                                   ")
+    print(f"\033[36m    version:\033[0m {__version__}                             ")
+    print("                                                  ")
+    print("\033[36m    developed by:\033[0m Leandro Seixas, PhD             ")
+    print("                                                  ")
+    print("-----------------------------------------------")
+    print("                                               ")
+    print("System:")
+    print(f"├── \033[36marchitecture:\033[0m {platform.machine()}")
+    print(f"├── \033[36msystem:\033[0m {platform.system()}")
+    print(f"├── \033[36muser:\033[0m {os.environ['USER']}")
+    print(f"├── \033[36mhostname:\033[0m {gethostname()}")
+    print(f"├── \033[36mcwd:\033[0m {os.getcwd()}")
+    print(f"└── \033[36mdate:\033[0m {datetime.today().strftime("%Y-%m-%d, %H:%M:%S")}")
+    print("                                               ")
+    print("Python:")
+    print(f"├── \033[36mversion:\033[0m {__python_version__}      ")
+    print(f"└── \033[36mexecutable:\033[0m {__python_executable__}      ")
+    print("                                               ")
+    print("Dependencies:")
+    print(f"├── \033[36mase version:\033[0m {__ase_version__}")
+    print(f"├── \033[36mnumpy version:\033[0m {__numpy_version__}")
+    print(f"└── \033[36mpandas version:\033[0m {__pandas_version__}")
+    print("                                               ")
 
 
-banner_small()
-
-print(f"\033[36m    version:\033[0m {__version__}                             ")
-print("                                                  ")
-print("\033[36m    developed by:\033[0m Leandro Seixas, PhD             ")
-print("                                                  ")
-print("-----------------------------------------------")
-print("                                               ")
-print("System:")
-print(f"├── \033[36muser:\033[0m {os.environ['USER']}")
-print(f"├── \033[36mhostname:\033[0m {gethostname()}")
-print(f"├── \033[36mcwd:\033[0m {os.getcwd()}")
-print(f"└── \033[36mdate:\033[0m {datetime.today().strftime("%Y-%m-%d, %H:%M:%S")}")
-print("                                               ")
-print("Python:")
-print(f"├── \033[36mversion:\033[0m {__python_version__}      ")
-print(f"└── \033[36mexecutable:\033[0m {__python_executable__}      ")
-print("                                               ")
-print("Dependencies:")
-print(f"├── \033[36mase version:\033[0m {__ase_version__}")
-print(f"├── \033[36mnumpy version:\033[0m {__numpy_version__}")
-print(f"└── \033[36mpandas version:\033[0m {__pandas_version__}")
-print("                                               ")
+starter()

@@ -20,7 +20,7 @@ def setup_data():
             - calculator (EMT): An instance of the EMT calculator.
             - doping_site (int): The index of the doping site.
     """
-    alloy_components = ["../data/bulk/Au.cif", "../data/bulk/Pt.cif"]
+    alloy_components = ["data/bulk/Au.cif", "data/bulk/Pt.cif"]
     supercell = [2, 2, 2]
     calculator = EMT()
     doping_site = 0

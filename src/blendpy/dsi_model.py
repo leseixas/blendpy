@@ -41,50 +41,55 @@ from .constants import *
 
 
 class DSIModel(Alloy):
-    def __init__(self, alloy_components: list = [], supercell: list = [1,1,1], calculator = None, diluting_parameters = None, doping_site: int = 0):
+    def __init__(self, alloy_components: list = [], supercell: list = [1,1,1], calculator = None, x0 = None, doping_site: int = 0):
         """
-        Initialize the DSIModel class with alloy components, supercell dimensions, and an optional calculator.
-
+        Initialize the DSI Model.
         Parameters:
-        ----------
-        alloy_components (list): List of alloy components.
-        supercell (list, optional): Dimensions of the supercell (Default: [1, 1, 1]).
-        calculator (optional): Calculator to attach to each Atoms object (Default: None).
-        doping_site (int, optional): Index of the doping site in the supercell (Default: 0).
+            alloy_components (list): List of alloy components.
+            supercell (list): Dimensions of the supercell. Default is [1, 1, 1].
+            calculator: Calculator object to attach to each Atoms object. Default is None.
+            x0: Minimum dilution factor. Default is 1/n_atoms.
+            doping_site (int): Index of the doping site. Default is 0.
 
         Attributes:
-        ----------
-        n_components (int): Number of alloy components.
-        supercell (list): Dimensions of the supercell.
-        _supercells (list): List to store the supercell Atoms objects.
-        dilute_alloys (list): List of dilute alloy configurations.
-
-        Methods:
-        --------
-        _create_supercells(): Create supercell configurations.
-        _create_dilute_alloys(): Create dilute alloy configurations.
+            n_components (int): Number of components in the alloy.
+            supercell (list): Dimensions of the supercell.
+            _supercells (list): List to store the supercell Atoms objects.
+            doping_site (int): Index of the doping site.
+            _dilute_alloys (list): List of dilute alloy Atoms objects.
+            x_min (float): Minimum dilution factor.
+            _energy_matrix: Matrix to store energy values.
+            _diluting_parameters: Matrix to store diluting parameters.
         """
+
         print("-----------------------------------------------")
         print("\033[36mDSI Model initialized\033[0m")
         print("-----------------------------------------------")
         super().__init__(alloy_components)
         self.n_components = len(alloy_components)
         print("    Number of components:", self.n_components)
-        self.supercell = supercell
+        self.supercell = supercell                          # List: [2,2,2]
         print("    Supercell dimensions:", self.supercell)
-        self._supercells = []         # To store the supercell Atoms objects
+        self._supercells = []                               # To store the supercell Atoms objects, like [Atoms("Au32"), Atoms("Pt32")].
         self.doping_site = doping_site
         print("    Doping site:", self.doping_site)
-        self._create_supercells()
-        self.dilute_alloys = self._create_dilute_alloys()
-        self.diluting_parameters = diluting_parameters
+        self._create_supercells()                           # Create supercells from the alloy components
+        self._dilute_alloys = self._create_dilute_alloys()  # List [Atoms("Au32"), Atoms("Au31Pt1"), Atoms("Au1Pt31"), Atoms("Pt32")]
+        n_atoms = len(self._supercells[0])
+        print("    Number of atoms in the supercell:", n_atoms)
+        self.x0 = 1 / n_atoms if x0 is None else x0
+        # Minimun dilution factor
+        print("    Minimum dilution factor:", self.x0)
 
         # To store energy_matrix and dsi_matrix
         self._energy_matrix = None
 
+        # To store the diluting parameters matrix
+        self._diluting_parameters = None                    # M_DSI matrix
+
         # If a calculator is provided, attach it to each Atoms object.
         if calculator is not None:
-            for row in self.dilute_alloys:
+            for row in self._dilute_alloys:
                 for atoms in row:
                     atoms.calc = calculator
                     energy = atoms.get_potential_energy()
@@ -179,7 +184,7 @@ class DSIModel(Alloy):
         print("    Logfile:", logfile)
         print("    Mask:", mask)
 
-        for row in self.dilute_alloys:
+        for row in self._dilute_alloys:
             for atoms in row:
                 ucf = UnitCellFilter(atoms, mask=mask)
                 optimizer = method(ucf, logfile=logfile)
@@ -189,10 +194,20 @@ class DSIModel(Alloy):
 
     def set_energy_matrix(self, energy_matrix: np.ndarray):
         """
-        Sets the energy matrix for the model.
+        Set the energy matrix for the model.
 
-        Parameters:
-        energy_matrix (np.ndarray): A numpy array representing the energy matrix to be set.
+        Parameters
+        ----------
+        energy_matrix : np.ndarray
+            A 2D numpy array representing the energy matrix. It must be of shape 
+            (n_components, n_components) and contain floating point numbers.
+
+        Raises
+        ------
+        ValueError
+            If the energy matrix is not a 2D numpy array.
+            If the energy matrix does not contain floating point numbers.
+            If the shape of the energy matrix is not (n_components, n_components).
         """
         energy_matrix = np.array(energy_matrix)
         if energy_matrix.ndim != 2:
@@ -200,7 +215,7 @@ class DSIModel(Alloy):
         if not np.issubdtype(energy_matrix.dtype, np.floating):
             raise ValueError("The energy matrix must be a nd.array of floats.")
         if energy_matrix.shape != (self.n_components, self.n_components):
-            raise ValueError("The energy matrix must have the same shape as the number of components.")
+            raise ValueError("The energy matrix must be a square matrix.")
         self._energy_matrix = energy_matrix
 
     
@@ -223,7 +238,7 @@ class DSIModel(Alloy):
             print("Calculating energy_matrix...")
             n  = self.n_components
             energy_matrix = np.zeros((n,n), dtype=float)
-            for i, row in enumerate(self.dilute_alloys):
+            for i, row in enumerate(self._dilute_alloys):
                 for j, atoms in enumerate(row):
                     if 'energy' not in atoms.info:
                         print("WARNING: 'energy' is not in atoms.info. Calculating this now in get_energy_matrix method.")
@@ -233,6 +248,33 @@ class DSIModel(Alloy):
             # Store energy_matrix as DSIModel attribute
             self._energy_matrix = energy_matrix
             return self._energy_matrix
+
+
+    def set_diluting_parameters(self, m_dsi: np.ndarray):
+        """
+        Set the diluting parameters matrix for the model.
+
+        Parameters
+        ----------
+        m_dsi : np.ndarray
+            A 2D numpy array of floats representing the diluting parameters matrix. 
+            The shape of the matrix must be (n_components, n_components).
+
+        Raises
+        ------
+        ValueError
+            If the input matrix is not a 2D numpy array.
+            If the input matrix does not contain floats.
+            If the shape of the input matrix is not (n_components, n_components).
+        """
+        m_dsi = np.array(m_dsi)
+        if m_dsi.ndim != 2:
+            raise ValueError("The diluting parameters matrix must be a 2D numpy array.")
+        if not np.issubdtype(m_dsi.dtype, np.floating):
+            raise ValueError("The diluting parameters matrix must be a nd.array of floats.")
+        if m_dsi.shape != (self.n_components, self.n_components):
+            raise ValueError("The diluting parameters matrix must be a square matrix.")
+        self._diluting_parameters = m_dsi
 
 
     def get_diluting_parameters(self) -> np.ndarray:
@@ -252,27 +294,27 @@ class DSIModel(Alloy):
         print("\033[36mDiluting parameters matrix (in kJ/mol)\033[0m")
         print("-----------------------------------------------")
 
-        if self.diluting_parameters is not None:
-            return self.diluting_parameters
+        if self._diluting_parameters is not None:
+            return self._diluting_parameters
         else:
-            dilute_alloys_flatten = [ atoms for row in self.dilute_alloys for atoms in row]
+            dilute_alloys_flatten = [ atoms for row in self._dilute_alloys for atoms in row]
             number_atoms_list = [ len(atoms) for atoms in dilute_alloys_flatten ]
 
             if len(set(number_atoms_list)) != 1:
                 raise NotImplementedError(f"Not all supercells have the same number of atoms.")
-            n  = self.n_components
-            x = 1/number_atoms_list[0] # dilution parameter
+            
+            n = self.n_components
 
             m_dsi = np.zeros((n,n), dtype=float)
             energy = self.get_energy_matrix()
-            for i, row in enumerate(self.dilute_alloys):
+            for i, row in enumerate(self._dilute_alloys):
                 for j in range(len(row)):
-                    m_dsi[i,j] = energy[i,j] - ((1-x)*energy[i,i] + x * energy[j,j])
+                    m_dsi[i,j] = energy[i,j] - ((1-self.x0)*energy[i,i] + self.x0 * energy[j,j])
 
             m_dsi_kjmol = m_dsi * convert_eVatom_to_kJmol # converting value to kJ/mol
 
             print(m_dsi_kjmol)
-            self.diluting_parameters = m_dsi_kjmol
+            self._diluting_parameters = m_dsi_kjmol
             return m_dsi_kjmol
             
 
@@ -299,11 +341,6 @@ class DSIModel(Alloy):
             raise ValueError("The number of points must be greater than 1.")
         
         x = np.linspace(0, 1, npoints)
-        # if self.diluting_parameters is None:
-        #     # print("Determining dilution parameters in enthalpy of mixing calculations...")
-        #     # m_dsi = self.get_diluting_parameters()
-        # else:
-        #     m_dsi = self.diluting_parameters
 
         m_dsi = self.get_diluting_parameters()
 

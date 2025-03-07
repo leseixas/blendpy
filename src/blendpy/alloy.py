@@ -34,29 +34,30 @@ from ase.atoms import Atoms
 from .constants import R
 
 class Alloy(Atoms):
-    '''
-    A class representing an alloy, inheriting from the Atoms class.
+    """
+    A class to represent an alloy composed of multiple components.
     Methods:
-        __init__(alloy_components: list, sublattice_alloy=None):
+        __init__(alloy_components: list):
         _store_chemical_elements():
         get_chemical_elements():
-    '''
+        get_configurational_entropy(eps: float = 1.e-4, npoints: int = 101):
+    """
     def __init__(self, alloy_components: list):
         """
         Initialize a new instance of the Alloy class.
 
         Parameters:
-        alloy_components (list): A list of alloy components.
+            alloy_components (list): A list of alloy components.
 
         Attributes:
-        alloy_components (list): Stores the alloy components.
-        _chemical_elements (list): Stores the unique chemical elements for each file.
-        sublattice_alloy: Stores the sublattice alloy if provided.
+            alloy_components (list): Stores the alloy components.
+            _chemical_elements (list): Stores the unique chemical elements for each file.
         """
         super().__init__(symbols=[], positions=[])
         self.alloy_components = alloy_components
         self._chemical_elements = []  # To store the chemical elements for each file
         self._store_chemical_elements()
+        
 
     def _store_chemical_elements(self):
         """
@@ -85,17 +86,32 @@ class Alloy(Atoms):
         """
         return self._chemical_elements
     
+
+    def include_component(self, component: str):
+        """
+        Include a new component in the alloy.
+
+        Parameters:
+            component (str): The filename of the component to be included.
+        """
+        pass
+        # self.alloy_components.append(component)
+        # atoms = read(component)
+        # elements = atoms.get_chemical_symbols()
+        # self._chemical_elements.append(elements)
+
+
     
     def get_configurational_entropy(self, eps: float = 1.e-4, npoints: int = 101):
         """
         Calculate the configurational entropy of a binary mixture.
 
         Parameters:
-        eps (float): A small value to avoid division by zero in logarithm calculations (Default: 1.e-4).
-        npoints (int): Number of points in the molar fraction range to calculate the entropy (Default: 101).
+            eps (float): A small value to avoid division by zero in logarithm calculations (Default: 1.e-4).
+            npoints (int): Number of points in the molar fraction range to calculate the entropy (Default: 101).
 
         Returns:
-        numpy.ndarray: Array of configurational entropy values for the given molar fraction range.
+            numpy.ndarray: Array of configurational entropy values for the given molar fraction range.
         """
         x = np.linspace(0,1,npoints)
         entropy = - R * ( (1-x-eps)*np.log(1-(x-eps)) + (x+eps)*np.log(x+eps) )

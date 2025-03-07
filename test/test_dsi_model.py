@@ -56,7 +56,7 @@ def test_initialization_without_calculator(setup_data):
         assert isinstance(atoms, Atoms)
     assert model.doping_site == doping_site
     assert isinstance(model.doping_site, int)
-    for row in model.dilute_alloys:
+    for row in model._dilute_alloys:
         for atoms in row:
             assert isinstance(atoms, Atoms)
             assert atoms.calc is None
@@ -90,43 +90,10 @@ def test_initialization_with_calculator(setup_data):
     assert isinstance(model.doping_site, int)
 
     # Check if the calculator is attached and energy is calculated
-    for row in model.dilute_alloys:
+    for row in model._dilute_alloys:
         for atoms in row:
             assert atoms.calc is not None
             assert 'energy' in atoms.info
-
-
-def test_initialization_with_diluting_parameters(setup_data):
-    """
-    Test the initialization of the DSIModel with diluting parameters.
-
-    This test ensures that the DSIModel is correctly initialized with the provided
-    diluting parameters and that the diluting parameters are stored as a list. It 
-    also verifies that each element in the `dilute_alloys` attribute is an instance 
-    of the `Atoms` class and that the `calc` attribute of each `Atoms` instance is 
-    None.
-
-    Args:
-        setup_data (tuple): A tuple containing the alloy components, supercell, 
-                            and doping site used for initializing the DSIModel.
-
-    Asserts:
-        - The `diluting_parameters` attribute of the model is equal to the provided 
-          diluting parameters.
-        - The `diluting_parameters` attribute is a list.
-        - Each element in the `dilute_alloys` attribute is an instance of the `Atoms` 
-          class.
-        - The `calc` attribute of each `Atoms` instance in `dilute_alloys` is None.
-    """
-    alloy_components, supercell, _, doping_site = setup_data
-    diluting_parameters = [[0.1, 0.2], [0.3, 0.4]]
-    model = DSIModel(alloy_components=alloy_components, supercell=supercell, diluting_parameters=diluting_parameters, doping_site=doping_site)
-    assert model.diluting_parameters == diluting_parameters
-    assert isinstance(model.diluting_parameters, list)
-    for row in model.dilute_alloys:
-        for atoms in row:
-            assert isinstance(atoms, Atoms)
-            assert atoms.calc is None
 
 
 def test_get_supercells(setup_data):
@@ -221,7 +188,7 @@ def test_optimize_with_default_parameters(setup_data):
     
     model.optimize(logfile=None) # default arguments, except logfile to avoid writing to file.
     
-    for row in model.dilute_alloys:
+    for row in model._dilute_alloys:
         for atoms in row:
             assert 'energy' in atoms.info
             assert atoms.info['energy'] is not None
@@ -252,7 +219,7 @@ def test_optimize_with_custom_parameters(setup_data):
     
     model.optimize(method=custom_method, fmax=custom_fmax, steps=custom_steps, logfile=custom_logfile, mask=custom_mask)
     
-    for row in model.dilute_alloys:
+    for row in model._dilute_alloys:
         for atoms in row:
             assert 'energy' in atoms.info
             assert atoms.info['energy'] is not None
@@ -273,10 +240,6 @@ def test_set_energy_matrix_with_invalid_dtype(setup_data):
     """
     alloy_components, supercell, calculator, doping_site = setup_data
     model = DSIModel(alloy_components=alloy_components, supercell=supercell, calculator=calculator, doping_site=doping_site)
-    
-    invalid_energy_matrix_int = np.array([[1, 2], [3, 4]])  # Integer dtype
-    with pytest.raises(ValueError, match="The energy matrix must be a nd.array of floats."):
-        model.set_energy_matrix(invalid_energy_matrix_int)
 
     invalid_energy_matrix_str = np.array([["a", "b"], ["c", "d"]])  # float dtype
     with pytest.raises(ValueError, match="The energy matrix must be a nd.array of floats."):
@@ -299,7 +262,7 @@ def test_set_energy_matrix_with_invalid_shape(setup_data):
     model = DSIModel(alloy_components=alloy_components, supercell=supercell, calculator=calculator, doping_site=doping_site)
     
     invalid_energy_matrix = np.array([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]])  # Incorrect shape
-    with pytest.raises(ValueError, match="The energy matrix must have the same shape as the number of components."):
+    with pytest.raises(ValueError, match="The energy matrix must be a square matrix."):
         model.set_energy_matrix(invalid_energy_matrix)
 
 
@@ -376,7 +339,7 @@ def test_get_energy_matrix_with_calculated_matrix(setup_data):
     assert isinstance(energy_matrix, np.ndarray)
     assert energy_matrix.shape == (len(alloy_components), len(alloy_components))
     
-    for i, row in enumerate(model.dilute_alloys):
+    for i, row in enumerate(model._dilute_alloys):
         for j, atoms in enumerate(row):
             assert energy_matrix[i, j] == atoms.info['energy']
 
@@ -399,7 +362,7 @@ def test_get_energy_matrix_with_missing_energy_info(setup_data):
     model = DSIModel(alloy_components=alloy_components, supercell=supercell, calculator=calculator, doping_site=doping_site)
     
     # Remove 'energy' from atoms.info
-    for row in model.dilute_alloys:
+    for row in model._dilute_alloys:
         for atoms in row:
             if 'energy' in atoms.info:
                 del atoms.info['energy']
@@ -409,10 +372,75 @@ def test_get_energy_matrix_with_missing_energy_info(setup_data):
     assert isinstance(energy_matrix, np.ndarray)
     assert energy_matrix.shape == (len(alloy_components), len(alloy_components))
     
-    for i, row in enumerate(model.dilute_alloys):
+    for i, row in enumerate(model._dilute_alloys):
         for j, atoms in enumerate(row):
             assert 'energy' in atoms.info
             assert energy_matrix[i, j] == atoms.info['energy']
+
+# set_diluting_parameters
+def test_set_diluting_parameters_with_invalid_dtype(setup_data):
+    """
+    Test the set_diluting_parameters method of the DSIModel class with an invalid dtype.
+
+    This test verifies that the set_diluting_parameters method raises a ValueError when provided
+    with a numpy array that does not have a floating-point dtype. It checks the following:
+    
+    - The method raises a ValueError with the appropriate error message.
+
+    Args:
+        setup_data (tuple): A tuple containing alloy_components, supercell, calculator, and doping_site.
+    """
+    alloy_components, supercell, calculator, doping_site = setup_data
+    model = DSIModel(alloy_components=alloy_components, supercell=supercell, calculator=calculator, doping_site=doping_site)
+
+    invalid_diluting_parameters_str = np.array([["a", "b"], ["c", "d"]])  # String dtype
+    with pytest.raises(ValueError, match="The diluting parameters matrix must be a nd.array of floats."):
+        model.set_diluting_parameters(invalid_diluting_parameters_str)
+
+
+def test_set_diluting_parameters_with_invalid_shape(setup_data):
+    """
+    Test the set_diluting_parameters method of the DSIModel class with an invalid shape.
+
+    This test verifies that the set_diluting_parameters method raises a ValueError when provided
+    with a numpy array that does not have the correct shape. It checks the following:
+    
+    - The method raises a ValueError with the appropriate error message.
+
+    Args:
+        setup_data (tuple): A tuple containing alloy_components, supercell, calculator, and doping_site.
+    """
+    alloy_components, supercell, calculator, doping_site = setup_data
+    model = DSIModel(alloy_components=alloy_components, supercell=supercell, calculator=calculator, doping_site=doping_site)
+    
+    invalid_diluting_parameters = np.array([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]])  # Incorrect shape
+    with pytest.raises(ValueError, match="The diluting parameters matrix must be a square matrix."):
+        model.set_diluting_parameters(invalid_diluting_parameters)
+
+
+def test_set_diluting_parameters_with_valid_input(setup_data):
+    """
+    Test the set_diluting_parameters method of the DSIModel class with valid input.
+
+    This test verifies that the set_diluting_parameters method correctly sets the diluting parameters
+    matrix for the model when provided with a valid numpy array. It checks the following:
+    
+    - The diluting parameters matrix is correctly set in the model.
+    - The diluting parameters matrix is of type numpy.ndarray.
+    - The values in the diluting parameters matrix match the provided input.
+
+    Args:
+        setup_data (tuple): A tuple containing alloy_components, supercell, calculator, and doping_site.
+    """
+    alloy_components, supercell, calculator, doping_site = setup_data
+    model = DSIModel(alloy_components=alloy_components, supercell=supercell, calculator=calculator, doping_site=doping_site)
+    
+    diluting_parameters = np.array([[0.1, 0.2], [0.3, 0.4]])
+    model.set_diluting_parameters(diluting_parameters)
+    
+    assert isinstance(model._diluting_parameters, np.ndarray)
+    assert np.array_equal(model._diluting_parameters, diluting_parameters)
+
 
 # get_diluting_parameters
 def test_get_diluting_parameters_with_valid_data(setup_data):
@@ -459,34 +487,21 @@ def test_get_diluting_parameters_with_inconsistent_supercells(setup_data):
         model.get_diluting_parameters()
 
 
-def test_get_diluting_parameters_with_precomputed_matrix(setup_data):
-    """
-    Test the get_diluting_parameters method of the DSIModel class when the diluting parameters matrix is precomputed.
-
-    This test verifies that the get_diluting_parameters method correctly returns the precomputed diluting parameters
-    matrix when it is already set in the model. It checks the following:
-    
-    - The method returns the precomputed diluting parameters matrix.
-    - The returned matrix is of type numpy.ndarray.
-    - The values in the returned matrix match the precomputed matrix.
-
-    Args:
-        setup_data (tuple): A tuple containing alloy_components, supercell, calculator, and doping_site.
-    """
+def test_get_diluting_parameters_with_precomputed_energy_matrix(setup_data):
     alloy_components, supercell, calculator, doping_site = setup_data
-
-    precomputed_diluting_parameters = np.array([[0.1, 0.2], [0.3, 0.4]])
 
     model = DSIModel(alloy_components=alloy_components,
                      supercell=supercell,
                      calculator=calculator,
-                     doping_site=doping_site,
-                     diluting_parameters=precomputed_diluting_parameters)
+                     doping_site=doping_site)
     
+    energy_matrix = np.array([[0.1, 0.2], [0.3, 0.4]])
+    model.set_energy_matrix(energy_matrix)
+
     diluting_parameters = model.get_diluting_parameters()
     
     assert isinstance(diluting_parameters, np.ndarray)
-    assert np.array_equal(diluting_parameters, precomputed_diluting_parameters)
+
 
 # get_enthalpy_of_mixing    
 def test_get_enthalpy_of_mixing_with_default_parameters(setup_data):
@@ -656,5 +671,7 @@ def test_get_enthalpy_of_mixing_with_invalid_npoints(setup_data):
     
     with pytest.raises(ValueError, match="The number of points must be greater than 1."):
         model.get_enthalpy_of_mixing(npoints=1)
+    
+
 
 

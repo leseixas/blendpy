@@ -98,9 +98,6 @@ class Polymorph(Atoms):
             mask (list): A list of directions and angles in Voigt notation that can be optimized.
                          A value of 1 enables optimization, while a value of 0 fixes it. (Default: [1,1,1,1,1,1])
         """
-        print("-----------------------------------------------")
-        print("\033[36mDilute alloys optimization\033[0m")
-        print("-----------------------------------------------")
         print("    Optimization method:", method.__name__)
         print("    Maximum force criteria:", fmax, "eV/ang")
         print("    Maximum number of steps:", steps)

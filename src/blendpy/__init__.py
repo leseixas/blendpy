@@ -48,13 +48,12 @@ from ._version import __version__
 from .constants import R, convert_eVatom_to_kJmol
 from .alloy import Alloy
 from .dsi_model import DSIModel
-from .polymorph import Polymorph
 from .phase_diagram import PhaseDiagram
 # from .ace import ACE
 # from .sqs import SQS
 # from .intermetallics import Intermetallics
 
-__all__ = ['Alloy', 'DSIModel', 'Polymorph', 'PhaseDiagram']
+__all__ = ['Alloy', 'DSIModel', 'PhaseDiagram']
 
 ansi_colors = {'black': ["\033[30m", "\033[0m"],
                'red': ["\033[31m", "\033[0m"],

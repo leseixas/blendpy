@@ -186,7 +186,7 @@ def test_optimize_with_default_parameters(setup_data):
     alloy_components, supercell, calculator, doping_site = setup_data
     model = DSIModel(alloy_components=alloy_components, supercell=supercell, calculator=calculator, doping_site=doping_site)
     
-    model.optimize(logfile=None) # default arguments, except logfile to avoid writing to file.
+    model.optimize() # default arguments, except logfile to avoid writing to file.
     
     for row in model._dilute_alloys:
         for atoms in row:
@@ -214,7 +214,7 @@ def test_optimize_with_custom_parameters(setup_data):
     custom_method = BFGS
     custom_fmax = 0.05
     custom_steps = 300
-    custom_logfile = None
+    custom_logfile = "test_optimize.log"
     custom_mask = [1, 1, 0, 0, 0, 1]
     
     model.optimize(method=custom_method, fmax=custom_fmax, steps=custom_steps, logfile=custom_logfile, mask=custom_mask)

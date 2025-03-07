@@ -4,6 +4,7 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../s
 import numpy as np
 from ase.calculators.emt import EMT
 from blendpy.alloy import Alloy
+from ase import Atoms
 import pytest
 from ase.optimize import BFGS, BFGSLineSearch, LBFGS, LBFGSLineSearch, MDMin, GPMin, FIRE, FIRE2, ODE12r, GoodOldQuasiNewton
 
@@ -54,6 +55,34 @@ def test_alloy_initialization_with_calculator():
     
     for atoms in alloy._alloy_atoms:
         assert atoms.calc == calculator
+        atoms.info['energy'] = atoms.get_potential_energy()
+        assert "energy" in atoms.info.keys()
+
+
+def test_store_from_atoms():
+    """
+    Test the Alloy class's ability to store atoms from given CIF files.
+    This test checks the following:
+    - The `_alloy_atoms` attribute is a list.
+    - The length of `_alloy_atoms` matches the number of alloy components.
+    - Each item in `_alloy_atoms` is an instance of the Alloy class.
+    - The `_chemical_elements` attribute is a list.
+    - The length of `_chemical_elements` matches the number of alloy components.
+    - Each item in `_chemical_elements` is a list.
+    - The `_chemical_elements` attribute contains the expected chemical elements for each alloy component.
+    """
+    alloy_components = ["data/bulk/Au.cif", "data/bulk/Pt.cif"]
+    alloy = Alloy(alloy_components)
+    
+    assert isinstance(alloy._alloy_atoms, list)
+    assert len(alloy._alloy_atoms) == len(alloy_components)
+    assert all(isinstance(atoms, Atoms) for atoms in alloy._alloy_atoms)
+
+    assert isinstance(alloy._chemical_elements, list)
+    assert len(alloy._chemical_elements) == len(alloy_components)
+    assert all(isinstance(elements, list) for elements in alloy._chemical_elements)
+    assert alloy._chemical_elements == [['Au','Au','Au','Au'],['Pt','Pt','Pt','Pt']]
+
 
 def test_get_chemical_elements():
     """
@@ -214,5 +243,51 @@ def test_get_structural_energy_transition():
     
     assert isinstance(energy_transition, float)
 
+
+def test_get_configurational_entropy_with_valid_parameters():
+    """
+    Test the get_configurational_entropy method with valid parameters.
+
+    This test verifies that the get_configurational_entropy method runs without errors when provided with valid parameters.
+    """
+    alloy_components = ["data/bulk/Au.cif", "data/bulk/Pt.cif"]
+    alloy = Alloy(alloy_components)
+    
+    entropy = alloy.get_configurational_entropy(eps=1.e-4, npoints=101)
+    
+    assert isinstance(entropy, np.ndarray)
+    assert len(entropy) == 101
+
+
+def test_get_configurational_entropy_with_invalid_eps():
+    """
+    Test the get_configurational_entropy method with an invalid eps parameter.
+
+    This test verifies that the get_configurational_entropy method raises a ValueError when provided with an invalid eps parameter.
+    """
+    alloy_components = ["data/bulk/Au.cif", "data/bulk/Pt.cif"]
+    alloy = Alloy(alloy_components)
+    
+    with pytest.raises(ValueError, match="eps must be a float."):
+        alloy.get_configurational_entropy(eps="invalid_eps", npoints=101)
+    
+    with pytest.raises(ValueError, match="eps must be greater than zero."):
+        alloy.get_configurational_entropy(eps=-1.e-4, npoints=101)
+
+
+def test_get_configurational_entropy_with_invalid_npoints():
+    """
+    Test the get_configurational_entropy method with an invalid npoints parameter.
+
+    This test verifies that the get_configurational_entropy method raises a ValueError when provided with an invalid npoints parameter.
+    """
+    alloy_components = ["data/bulk/Au.cif", "data/bulk/Pt.cif"]
+    alloy = Alloy(alloy_components)
+    
+    with pytest.raises(ValueError, match="npoints must be an integer."):
+        alloy.get_configurational_entropy(eps=1.e-4, npoints="invalid_npoints")
+    
+    with pytest.raises(ValueError, match="npoints must be greater than zero."):
+        alloy.get_configurational_entropy(eps=1.e-4, npoints=-101)
 
 

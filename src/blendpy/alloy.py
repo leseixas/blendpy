@@ -38,11 +38,17 @@ from ase.filters import UnitCellFilter
 
 class Alloy(Atoms):
     """
-    A class to represent an alloy composed of multiple components.
+    The Alloy class represents a collection of atomic structures (alloy components) and provides methods to manipulate and analyze them.
+        n_components (int): The number of alloy components.
+        _alloy_atoms (list): Stores the atomic structures read from alloy components.
     Methods:
-        __init__(alloy_components: list):
-        _store_chemical_elements():
+        __init__(alloy_components: list, calculator=None):
+        _store_from_atoms():
         get_chemical_elements():
+        get_energies():
+        optimize(method=BFGSLineSearch, fmax: float = 0.01, steps: int = 500, logfile=None, mask: list = [1,1,1,1,1,1]):
+        get_structural_energy_transition(method=BFGSLineSearch, fmax: float = 0.01, steps: int = 500, logfile=None, mask: list = [1,1,1,1,1,1]):
+            Calculate the energy difference per atom between two structures after optimizing their structures.
         get_configurational_entropy(eps: float = 1.e-4, npoints: int = 101):
     """
     def __init__(self, alloy_components: list, calculator = None):
@@ -187,6 +193,15 @@ class Alloy(Atoms):
         Returns:
             numpy.ndarray: Array of configurational entropy values for the given molar fraction range.
         """
+        if isinstance(eps, float) == False:
+            raise ValueError("eps must be a float.")
+        if eps <= 0:
+            raise ValueError("eps must be greater than zero.")
+        if isinstance(npoints, int) == False:
+            raise ValueError("npoints must be an integer.")
+        if npoints <= 0:
+            raise ValueError("npoints must be greater than zero.")
+
         x = np.linspace(0,1,npoints)
         entropy = - R * ( (1-x-eps)*np.log(1-(x-eps)) + (x+eps)*np.log(x+eps) )
         return entropy

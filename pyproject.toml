@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "blendpy"
-version = "25.3.35"
+version = "25.3.36"
 authors = [
   { name="Leandro Seixas", email="leandro.fisica@gmail.com" },
 ]
@@ -29,4 +29,5 @@ classifiers = [
 
 [project.urls]
 "Homepage" = "https://github.com/leseixas/blendpy"
+"Repository"= "https://github.com/leseixas/blendpy"
 

@@ -100,11 +100,11 @@ def starter(color='cyan'):
     print(f"└── {color_start}executable:{color_end} {__python_executable__}      ")
     print("                                               ")
     print("Dependencies:")
-    print(f"├── {color_start}ase version:{color_end} {__ase_version__}    [{__ase_file__}]")
-    print(f"├── {color_start}numpy version:{color_end} {__numpy_version__}    [{__numpy_file__}]")
-    print(f"├── {color_start}pandas version:{color_end} {__pandas_version__}    [{__pandas_file__}]")
-    print(f"├── {color_start}pytest version:{color_end} {__pytest_version__}    [{__pytest_file__}]")
-    print(f"└── {color_start}yaml version:{color_end} {__yaml_version__}    [{__yaml_file__}]")
+    print(f"├── {color_start}ase version:{color_end} {__ase_version__}    [{__ase_file__[:-11]}]")
+    print(f"├── {color_start}numpy version:{color_end} {__numpy_version__}    [{__numpy_file__[:-11]}]")
+    print(f"├── {color_start}pandas version:{color_end} {__pandas_version__}    [{__pandas_file__[:-11]}]")
+    print(f"├── {color_start}pytest version:{color_end} {__pytest_version__}    [{__pytest_file__[:-11]}]")
+    print(f"└── {color_start}yaml version:{color_end} {__yaml_version__}    [{__yaml_file__[:-11]}]")
     print("                                               ")
 
 

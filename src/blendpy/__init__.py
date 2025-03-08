@@ -43,6 +43,8 @@ from pytest import __version__ as __pytest_version__
 from pytest import __file__ as __pytest_file__
 from yaml import __version__ as __yaml_version__
 from yaml import __file__ as __yaml_file__
+from tqdm import __version__ as __tqdm_version__
+from tqdm import __file__ as __tqdm_file__
 
 from ._version import __version__
 from .constants import R, convert_eVatom_to_kJmol
@@ -104,7 +106,8 @@ def starter(color='cyan'):
     print(f"├── {color_start}numpy version:{color_end} {__numpy_version__}    [{__numpy_file__[:-11]}]")
     print(f"├── {color_start}pandas version:{color_end} {__pandas_version__}    [{__pandas_file__[:-11]}]")
     print(f"├── {color_start}pytest version:{color_end} {__pytest_version__}    [{__pytest_file__[:-11]}]")
-    print(f"└── {color_start}yaml version:{color_end} {__yaml_version__}    [{__yaml_file__[:-11]}]")
+    print(f"├── {color_start}yaml version:{color_end} {__yaml_version__}    [{__yaml_file__[:-11]}]")
+    print(f"└── {color_start}tqdm version:{color_end} {__tqdm_version__}    [{__tqdm_file__[:-11]}]")
     print("                                               ")
 
 

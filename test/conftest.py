@@ -1,5 +1,4 @@
 import os
-from glob import glob
 
 LOGFILES = ['optimize.log', 'test_optimize.log']
 

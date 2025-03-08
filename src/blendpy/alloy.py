@@ -53,20 +53,30 @@ class Alloy(Atoms):
     """
     def __init__(self, alloy_components: list, calculator = None):
         """
-        Initialize a new instance of the Alloy class.
+        Initialize an Alloy object with given alloy components and an optional calculator.
 
         Parameters:
-            alloy_components (list): A list of alloy components.
+        alloy_components (list): A list of file names representing the alloy components.
+                                 Example: ['Au4.xyz', 'Pd4.xyz']
+        calculator (optional): A calculator object to be attached to each Atoms object.
+                               Default is None.
 
         Attributes:
-            alloy_components (list): Stores the alloy components.
-            _chemical_elements (list): Stores the unique chemical elements for each file.
+        alloy_components (list): Stores the provided alloy components.
+        n_components (int): Number of alloy components.
+        _chemical_elements (list): List of lists containing the chemical elements of each component.
+                                   Example: [['Au', 'Au', 'Au', 'Au'], ['Pd', 'Pd', 'Pd', 'Pd']]
+        _alloy_atoms (list): List of Atoms objects created from the alloy components.
+                             Example: [Atoms('Au4'), Atoms('Pd4')]
+
+        Methods:
+        _store_from_atoms: Stores information from the Atoms objects.
         """
         super().__init__(symbols=[], positions=[])
-        self.alloy_components = alloy_components
-        self.n_components = len(self.alloy_components)
-        self._chemical_elements = []  # To store the chemical elements for each file
-        self._alloy_atoms = []
+        self.alloy_components = alloy_components           # Example: ['Au4.xyz', 'Pd4.xyz']
+        self.n_components = len(self.alloy_components)     # Example: 2
+        self._chemical_elements = []                       # Example: [['Au', 'Au', 'Au', 'Au'], ['Pd', 'Pd', 'Pd', 'Pd']]
+        self._alloy_atoms = []                             # Example: [Atoms('Au4'), Atoms('Pd4')]
         self._store_from_atoms()
 
         # If a calculator is provided, attach it to each Atoms object.
@@ -77,7 +87,16 @@ class Alloy(Atoms):
 
     def _store_from_atoms(self):
         """
-        Reads atomic structures from `alloy_components` and stores them.
+        Reads atomic data from files specified in `self.alloy_components` and stores 
+        the atomic structures and their chemical elements.
+
+        This method reads atomic structures from files listed in `self.alloy_components`, 
+        appends the atomic structures to `list_atoms`, and appends the chemical symbols 
+        of the atoms to `list_elements`. The results are then stored in the instance 
+        variables `_alloy_atoms` and `_chemical_elements`.
+
+        Returns:
+            None
         """
         list_atoms = []
         list_elements = []
@@ -89,16 +108,16 @@ class Alloy(Atoms):
         self._chemical_elements = list_elements
 
 
-    def get_chemical_elements(self):
+    def get_chemical_elements(self) -> list:
         """
         Retrieve the list of chemical elements in the alloy.
         Returns:
             list: A list containing the chemical elements present in the alloy.
         """
-        return self._chemical_elements
+        return self._chemical_elements                     # Example: [['Au', 'Au', 'Au', 'Au'], ['Pd', 'Pd', 'Pd', 'Pd']]
     
     
-    def get_energies(self):
+    def get_energies(self) -> list:
         """
         Calculate and return the potential energies of all alloy atoms.
 
@@ -115,25 +134,31 @@ class Alloy(Atoms):
             atoms.info['energy'] = energy
             # print(f"    Total energy ({atoms.get_chemical_formula()}) [Non-relaxed]: {energy} eV")
             energies.append(energy)
-        return energies
+        return energies                                     # Example: [-12.4, -10.2]
 
 
     def optimize(self, method=BFGSLineSearch, fmax: float = 0.01, steps: int = 500, logfile = None, mask: list = [1,1,1,1,1,1]):
         """
-        Optimize the atomic structure of the alloy using the specified optimization method.
+        Optimize the atomic structure using the specified optimization method.
 
         Parameters:
         method (class, optional): The optimization method to use. Default is BFGSLineSearch.
+                                  Must be one of [BFGS, BFGSLineSearch, LBFGS, LBFGSLineSearch, MDMin, GPMin, FIRE, FIRE2, ODE12r, GoodOldQuasiNewton].
         fmax (float, optional): The maximum force convergence criterion. Default is 0.01.
         steps (int, optional): The maximum number of optimization steps. Default is 500.
-        logfile (str, optional): The name of the file to log the optimization process. Default is None.
-        mask (list, optional): A list indicating which degrees of freedom are allowed to relax. Default is [1, 1, 1, 1, 1, 1].
+        logfile (str, optional): The file to log the optimization process. Default is None.
+        mask (list, optional): A list of six integers (0 or 1) specifying which degrees of freedom to optimize. Default is [1, 1, 1, 1, 1, 1].
 
-        Returns:
-        None
+        Raises:
+        ValueError: If an invalid optimization method is provided.
+        ValueError: If fmax is not a float.
+        ValueError: If steps is not an integer.
+        ValueError: If mask is not a list.
+        ValueError: If mask does not have 6 elements.
+        ValueError: If any element in mask is not an integer.
+        ValueError: If any element in mask is not 0 or 1.
+        ValueError: If logfile is not a string.
 
-        Prints:
-        The total energy of the relaxed atomic structure for each alloy component.
         """
         if method not in [BFGS, BFGSLineSearch, LBFGS, LBFGSLineSearch, MDMin, GPMin, FIRE, FIRE2, ODE12r, GoodOldQuasiNewton]:
             raise ValueError("Invalid optimization method.")
@@ -159,7 +184,7 @@ class Alloy(Atoms):
             # print(f"    Total energy ({atoms.get_chemical_formula()}) [Relaxed]: {atoms.get_potential_energy()} eV")
 
 
-    def get_structural_energy_transition(self, method=BFGSLineSearch, fmax: float = 0.01, steps: int = 500, logfile = None, mask: list = [1,1,1,1,1,1]):
+    def get_structural_energy_transition(self, method=BFGSLineSearch, fmax: float = 0.01, steps: int = 500, logfile = None, mask: list = [1,1,1,1,1,1]) -> float:
         """
         This method calculates the energy difference per atom between two
         structure after optimizing their structures. The result is converted from
@@ -182,16 +207,20 @@ class Alloy(Atoms):
         return delta_energy * convert_eVatom_to_kJmol # converting value to kJ/mol
 
 
-    def get_configurational_entropy(self, eps: float = 1.e-4, npoints: int = 101):
+    def get_configurational_entropy(self, eps: float = 1.e-6, npoints: int = 101) -> np.ndarray:
         """
-        Calculate the configurational entropy of a binary mixture.
+        Calculate the configurational entropy of an alloy.
 
         Parameters:
-            eps (float): A small value to avoid division by zero in logarithm calculations (Default: 1.e-4).
-            npoints (int): Number of points in the molar fraction range to calculate the entropy (Default: 101).
+        eps (float): A small positive value to avoid division by zero in the logarithm. Default is 1.e-6.
+        npoints (int): The number of points to generate in the linspace. Default is 101.
 
         Returns:
-            numpy.ndarray: Array of configurational entropy values for the given molar fraction range.
+        np.ndarray: An array containing the configurational entropy values.
+
+        Raises:
+        ValueError: If eps is not a float or is less than or equal to zero.
+        ValueError: If npoints is not an integer or is less than or equal to zero.
         """
         if isinstance(eps, float) == False:
             raise ValueError("eps must be a float.")
@@ -204,4 +233,4 @@ class Alloy(Atoms):
 
         x = np.linspace(0,1,npoints)
         entropy = - R * ( (1-x-eps)*np.log(1-(x-eps)) + (x+eps)*np.log(x+eps) )
-        return entropy
+        return np.array(entropy)

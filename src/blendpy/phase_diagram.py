@@ -26,46 +26,56 @@
 
 import numpy as np
 import pandas as pd
-# from .alloy import Alloy
-
+from tqdm import tqdm
 
 '''
 Module phase diagram
 '''
 
 class PhaseDiagram():
-    def __init__(self, enthalpy, entropy, temperatures: np.ndarray = np.arange(300, 2101, 50)):
+    def __init__(self, enthalpy: np.ndarray, entropy: np.ndarray, temperatures: np.ndarray = np.arange(300, 3001, 50)):
         """
-        Initialize the phase diagram with given enthalpy, entropy, temperature range, and number of points.
+        Initialize the phase diagram with enthalpy, entropy, and optional temperature values.
 
         Parameters:
-        enthalpy (float): The enthalpy value.
-        entropy (float): The entropy value.
-        temperatures (np.ndarray, optional): Array of temperatures to consider. Default is an array from 300 to 2100 with a step of 50.
-        npoints (int, optional): Number of points for the molar fraction. Default is 101.
+        enthalpy (np.ndarray): Array of enthalpy values.
+        entropy (np.ndarray): Array of entropy values.
+        temperatures (np.ndarray, optional): Array of temperature values. Defaults to np.arange(300, 3001, 50).
+
+        Raises:
+        NotImplementedError: If the lengths of enthalpy and entropy arrays do not match.
         """
-        # super().__init__()
+        if np.issubdtype(enthalpy.dtype, np.number) == False:
+            raise TypeError("Enthalpy should be a numeric array.")
+        if np.issubdtype(entropy.dtype, np.number) == False:
+            raise TypeError("Entropy should be a numeric array.")
+        if np.issubdtype(temperatures.dtype, np.number) == False:
+            raise TypeError("Temperatures should be a numeric array.")
         self.enthalpy = enthalpy
         self.entropy = entropy
         self.temperatures = temperatures
-        if len(enthalpy) != len(entropy):
-            raise NotImplementedError("Enthalpy and entropy should have the same magnitude.")
+        self.gibbs_free_energy = None
         self.npoints = len(enthalpy)
-        self.x = np.linspace(0,1,self.npoints) # molar fraction
+        self.x = np.linspace(0,1,self.npoints)
 
 
-    def gibbs_free_energy(self):
+    def get_gibbs_free_energy(self) -> np.ndarray:
         """
-        Calculate the Gibbs free energy for each temperature.
+        Calculate and return the Gibbs free energy.
 
-        The Gibbs free energy is calculated using the relation:
+        The Gibbs free energy is computed using:
         G = H - T * S
-        where G is the Gibbs free energy, H is the enthalpy, T is the temperature, and S is the entropy.
+        where:
+        - G is the Gibbs free energy
+        - H is the enthalpy
+        - T is the temperature
+        - S is the entropy
 
         Returns:
-            list: A list of Gibbs free energy values corresponding to each temperature in self.temperatures.
+            np.ndarray: The calculated Gibbs free energy.
         """
-        return [self.enthalpy - t * self.entropy for t in self.temperatures]
+        self.gibbs_free_energy = self.enthalpy - self.temperatures[:, None] * self.entropy
+        return self.gibbs_free_energy
     
 
     def get_spinodal_decomposition(self) -> pd.DataFrame:
@@ -81,9 +91,8 @@ class PhaseDiagram():
             The spinodal critical point (x_c, T_c) where the temperature is maximum.
         """
 
-        print("-----------------------------------------------")
-        print("\033[36mSpinodal curve\033[0m")
-        print("-----------------------------------------------")
+        # print("  Spinodal curve")
+        # print("-----------------------------------------------")
 
         spinodal = []
         for t in self.temperatures:
@@ -101,19 +110,21 @@ class PhaseDiagram():
         #     ], ignore_index=True)
         #     .dropna()
         # )
-        df0 = pd.DataFrame(spinodal)
-        df1 = df0[[1,0]]
-        df1.columns = ["x","t"]
-        df2 = df0[[2,0]]
-        df2.columns = ["x","t"]
-        reversed_df2 = df2.iloc[::-1].reset_index(drop=True)
-        df_result = pd.concat([df1, reversed_df2], axis=0, ignore_index=True)
-        df_spinodal = df_result.dropna()
+        # df0 = pd.DataFrame(spinodal, columns=["t", "a", "b"])
+        # df1 = df0[["a","t"]]
+        # df1.columns = ["x","t"]
+        # df2 = df0[["b","t"]]
+        # df2.columns = ["x","t"]
+        # reversed_df2 = df2.iloc[::-1].reset_index(drop=True)
+        # df_result = pd.concat([df1, reversed_df2], axis=0, ignore_index=True)
+        # df_spinodal = df_result.dropna()
         
-        # spinodal critical point
-        (x_c, T_c) = df_spinodal.iloc[df_spinodal['t'].argmax()]
-        print("    Spinodal critical point (x_c, T_c):", (x_c, T_c))
-        return df_spinodal
+        # # spinodal critical point
+        # (x_c, T_c) = df_spinodal.iloc[df_spinodal['t'].argmax()]
+        # print("    Spinodal critical point (x_c, T_c):", (x_c, T_c))
+        
+        return spinodal
+        # return df_spinodal
 
     
     def _dif_gibbs(self):
@@ -128,8 +139,7 @@ class PhaseDiagram():
             with respect to composition. The shape of the array is (n_temperatures, npoints).
         """
         dx = 1 / (self.npoints - 1)
-        gibbs = self.gibbs_free_energy()  # shape: (n_temperatures, npoints)
-        dif_gibbs = np.gradient(gibbs, dx, axis=1)
+        dif_gibbs = np.gradient(self.gibbs_free_energy, dx, axis=1)
         return dif_gibbs
 
 
@@ -147,7 +157,7 @@ class PhaseDiagram():
             of the Gibbs free energy around x0 for each temperature.
         """
         x = self.x  # 1D array with shape (npoints,)
-        g = self.gibbs_free_energy()  # 2D array with shape (n_temperatures, npoints)
+        g = self.gibbs_free_energy  # 2D array with shape (n_temperatures, npoints)
         dg = self._dif_gibbs()  # 2D array with shape (n_temperatures, npoints)
         
         # For each temperature (each row), compute the Taylor expansion around x0:
@@ -160,17 +170,17 @@ class PhaseDiagram():
     def _is_convex(self, x0: int):
         g = self.gibbs_free_energy()    # shape: (n_temperatures, npoints)
         taylor = self._gibbs_taylor(x0)   # shape: (n_temperatures, npoints)
+
         # Check if g >= taylor for every x in each temperature (row)
         convexity_at_t = np.all(g >= taylor, axis=1)
         return convexity_at_t  # returns a boolean array of shape (n_temperatures,)
     
 
     def _miscibility_gap(self):
-        x = self.x
         convexity_flags = []
-        for x0 in x:
+        for x0 in self.x:
             for ti in self.temperatures:
-                for xi in x:
+                for xi in self.x:
                     convexity_flags.append(self._is_convex(x0)[ti,xi])
         return convexity_flags
     

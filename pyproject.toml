@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "blendpy"
-version = "25.3.36"
+version = "25.3.37"
 authors = [
   { name="Leandro Seixas", email="leandro.fisica@gmail.com" },
 ]
@@ -17,7 +17,8 @@ dependencies = [
     'pandas',
     'ase',
     'pytest',
-    'pyyaml'
+    'pyyaml',
+    'tqdm'
 ]
 classifiers = [
     "Programming Language :: Python :: 3",

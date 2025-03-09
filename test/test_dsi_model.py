@@ -9,6 +9,7 @@ from ase.calculators.emt import EMT
 from blendpy.dsi_model import DSIModel
 from ase.optimize import BFGS
 import numpy as np
+from blendpy.constants import *
 
 # Fixtures
 @pytest.fixture
@@ -487,19 +488,40 @@ def test_get_diluting_parameters_with_inconsistent_supercells(setup_data):
         model.get_diluting_parameters()
 
 
+# def test_get_diluting_parameters_with_manual_data(setup):
+
+
+
 def test_get_diluting_parameters_with_precomputed_energy_matrix(setup_data):
-    alloy_components, supercell, calculator, doping_site = setup_data
+    alloy_components, supercell, _, doping_site = setup_data
+    x0 = 1/27 # AuPt
+    # x0 = 1/10 # fictitious
 
     model = DSIModel(alloy_components=alloy_components,
                      supercell=supercell,
-                     calculator=calculator,
-                     doping_site=doping_site)
+                     doping_site=doping_site,
+                     x0=x0)
     
-    energy_matrix = np.array([[0.1, 0.2], [0.3, 0.4]])
+    # AuPt (from DFT)
+    energy_matrix = np.array([[-85.940400, -89.230299],
+                              [-170.278459, -173.891172]])
+    
+    # fictitious
+    # energy_matrix = np.array([[-10.0, -9.8],
+    #                           [-11.2, -11.0]])
+
     model.set_energy_matrix(energy_matrix)
 
     diluting_parameters = model.get_diluting_parameters()
+
+    # AuPt
+    expected_diluting_parameters = np.array([[0.0, -0.032463], [0.355277, 0.0]]) * convert_eVatom_to_kJmol
+
+    # fictitious
+    # expected_diluting_parameters = np.array([[0.0, 0.3], [-0.3, 0]]) # * convert_eVatom_to_kJmol
     
+    assert np.allclose(np.diag(diluting_parameters), 0, atol=1e-6)
+    assert np.allclose(diluting_parameters, expected_diluting_parameters, atol=1e-6)
     assert isinstance(diluting_parameters, np.ndarray)
 
 

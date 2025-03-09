@@ -219,7 +219,7 @@ class DSIModel(Alloy):
         self._energy_matrix = energy_matrix
 
     
-    def get_energy_matrix(self) -> np.ndarray:
+    def get_energy_matrix(self, verbose: bool = True) -> np.ndarray:
         """
         Computes and returns the energy matrix for the dilute alloys.
 
@@ -232,10 +232,14 @@ class DSIModel(Alloy):
                         the energy values of the dilute alloys.
         """
         if self._energy_matrix is not None:
-            print("Loading energy_matrix...")
+            if verbose:
+                print("    Loading energy_matrix...")
+                print("    Energy matrix:")
+                print(self._energy_matrix)
             return self._energy_matrix
         else:
-            print("Calculating energy_matrix...")
+            if verbose:
+                print("    Calculating energy_matrix...")
             n  = self.n_components
             energy_matrix = np.zeros((n,n), dtype=float)
             for i, row in enumerate(self._dilute_alloys):
@@ -277,7 +281,7 @@ class DSIModel(Alloy):
         self._diluting_parameters = m_dsi
 
 
-    def get_diluting_parameters(self) -> np.ndarray:
+    def get_diluting_parameters(self, verbose: bool = True) -> np.ndarray:
         """
         Calculate the diluting parameters for the given dilute alloys.
 
@@ -290,9 +294,10 @@ class DSIModel(Alloy):
         Raises:
             ValueError: If not all supercells have the same number of atoms.
         """
-        print("-----------------------------------------------")
-        print("\033[36mDiluting parameters matrix (in kJ/mol)\033[0m")
-        print("-----------------------------------------------")
+        if verbose:
+            print("-----------------------------------------------")
+            print("\033[36mDiluting parameters matrix (in kJ/mol)\033[0m")
+            print("-----------------------------------------------")
 
         if self._diluting_parameters is not None:
             return self._diluting_parameters
@@ -307,14 +312,21 @@ class DSIModel(Alloy):
 
             m_dsi = np.zeros((n,n), dtype=float)
             energy = self.get_energy_matrix()
-            for i, row in enumerate(self._dilute_alloys):
-                for j in range(len(row)):
-                    m_dsi[i,j] = energy[i,j] - ((1-self.x0)*energy[i,i] + self.x0 * energy[j,j])
+            for i in range(n):
+                for j in range(n):
+                    m_dsi[i,j] = energy[i,j] - ( (1-self.x0) * energy[i,i] + self.x0 * energy[j,j] )
 
-            m_dsi_kjmol = m_dsi * convert_eVatom_to_kJmol # converting value to kJ/mol
+            m_dsi_kjmol = m_dsi  * convert_eVatom_to_kJmol    # converting value to kJ/mol
 
-            print(m_dsi_kjmol)
-            self._diluting_parameters = m_dsi_kjmol
+            if verbose:
+                print("    Energy matrix:")
+                print(energy)
+                print("    Diluting parameters matrix (in eV):")
+                print(m_dsi)
+                print("    Diluting parameters matrix (in kJ/mol):")
+                print(m_dsi_kjmol)
+            
+            self._diluting_parameters = m_dsi_kjmol         # Store diluting_parameters as DSIModel attribute
             return m_dsi_kjmol
             
 
@@ -342,7 +354,9 @@ class DSIModel(Alloy):
         
         x = np.linspace(0, 1, npoints)
 
-        m_dsi = self.get_diluting_parameters()
+        m_dsi = self.get_diluting_parameters(verbose=False)
 
         enthalpy = m_dsi[A,B] * x * (1-x)**2 + m_dsi[B,A] * x**2 * (1-x) + (1-x) * slope[0] + x * slope[1]
         return np.array(enthalpy)
+
+

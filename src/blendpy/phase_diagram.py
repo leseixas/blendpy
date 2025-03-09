@@ -27,6 +27,7 @@
 import numpy as np
 import pandas as pd
 from tqdm import tqdm
+from ase.parallel import parprint as print
 
 '''
 Module phase diagram
@@ -78,7 +79,7 @@ class PhaseDiagram():
         return self.gibbs_free_energy
     
 
-    def get_spinodal_decomposition(self) -> pd.DataFrame:
+    def get_spinodal_decomposition(self, verbose: bool = True) -> pd.DataFrame:
         """
         Calculate the spinodal decomposition curve for the given temperatures and Gibbs free energy.
         This method computes the spinodal curve by finding the points where the second derivative of the Gibbs free energy 
@@ -90,9 +91,10 @@ class PhaseDiagram():
         Prints:
             The spinodal critical point (x_c, T_c) where the temperature is maximum.
         """
-
-        # print("  Spinodal curve")
-        # print("-----------------------------------------------")
+        if verbose:
+            print("-----------------------------------------------")
+            print("  Spinodal curve")
+            print("-----------------------------------------------")
 
         spinodal = []
         for t in self.temperatures:

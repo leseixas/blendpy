@@ -29,9 +29,6 @@ import pandas as pd
 from tqdm import tqdm
 from ase.parallel import parprint as print
 
-'''
-Module phase diagram
-'''
 
 class PhaseDiagram():
     def __init__(self, enthalpy: np.ndarray, entropy: np.ndarray, temperatures: np.ndarray = np.arange(300, 3001, 50)):
@@ -80,17 +77,6 @@ class PhaseDiagram():
     
 
     def get_spinodal_decomposition(self, verbose: bool = True) -> pd.DataFrame:
-        """
-        Calculate the spinodal decomposition curve for the given temperatures and Gibbs free energy.
-        This method computes the spinodal curve by finding the points where the second derivative of the Gibbs free energy 
-        with respect to composition changes sign. It iterates over the specified temperatures, calculates the second 
-        derivative of the Gibbs free energy, and identifies the spinodal points. The results are then compiled into a 
-        pandas DataFrame.
-        Returns:
-            pd.DataFrame: A DataFrame containing the spinodal decomposition curve with columns 'x' (composition) and 't' (temperature).
-        Prints:
-            The spinodal critical point (x_c, T_c) where the temperature is maximum.
-        """
         if verbose:
             print("-----------------------------------------------")
             print("  Spinodal curve")

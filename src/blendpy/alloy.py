@@ -24,10 +24,6 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-'''
-Module alloy
-'''
-
 import numpy as np
 from ase.io import read
 from ase.atoms import Atoms
@@ -57,7 +53,7 @@ class Alloy(Atoms):
 
         Parameters:
         alloy_components (list): A list of file names representing the alloy components.
-                                 Example: ['Au4.xyz', 'Pd4.xyz']
+                                 Example: ['Au4.cif', 'Pd4.cif']
         calculator (optional): A calculator object to be attached to each Atoms object.
                                Default is None.
 
@@ -73,7 +69,7 @@ class Alloy(Atoms):
         _store_from_atoms: Stores information from the Atoms objects.
         """
         super().__init__(symbols=[], positions=[])
-        self.alloy_components = alloy_components           # Example: ['Au4.xyz', 'Pd4.xyz']
+        self.alloy_components = alloy_components           # Example: ['Au4.cif', 'Pd4.cif']
         self.n_components = len(self.alloy_components)     # Example: 2
         self._chemical_elements = []                       # Example: [['Au', 'Au', 'Au', 'Au'], ['Pd', 'Pd', 'Pd', 'Pd']]
         self._alloy_atoms = []                             # Example: [Atoms('Au4'), Atoms('Pd4')]

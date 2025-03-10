@@ -488,11 +488,20 @@ def test_get_diluting_parameters_with_inconsistent_supercells(setup_data):
         model.get_diluting_parameters()
 
 
-# def test_get_diluting_parameters_with_manual_data(setup):
-
-
-
 def test_get_diluting_parameters_with_precomputed_energy_matrix(setup_data):
+    """
+    Test the `get_diluting_parameters` method of the `DSIModel` class with a precomputed energy matrix.
+    This test verifies that the diluting parameters calculated by the `DSIModel` are correct when provided
+    with a specific energy matrix. The test uses two sets of data: one for the AuPt alloy and one for a 
+    fictitious alloy. The expected diluting parameters are compared against the calculated ones to ensure 
+    accuracy.
+    Args:
+        setup_data (tuple): A tuple containing the alloy components, supercell, and doping site information.
+    Assertions:
+        - The diagonal elements of the diluting parameters matrix should be close to zero.
+        - The calculated diluting parameters should match the expected diluting parameters within a tolerance.
+        - The diluting parameters should be of type `np.ndarray`.
+    """
     alloy_components, supercell, _, doping_site = setup_data
     x0 = 1/27 # AuPt
     # x0 = 1/10 # fictitious

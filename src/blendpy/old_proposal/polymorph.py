@@ -24,10 +24,6 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-'''
-Module polymorph
-'''
-
 from ase.io import read
 from ase.atoms import Atoms
 from ase.optimize import BFGSLineSearch

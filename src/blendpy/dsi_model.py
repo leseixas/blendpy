@@ -24,10 +24,6 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-'''
-Module DSI model
-'''
-
 # import os
 import numpy as np
 # import pandas as pd
@@ -111,10 +107,8 @@ class DSIModel(Alloy):
         """
         if len(self.alloy_components) > 0:
             for filename in self.alloy_components:
-                # Read the structure from file (ASE infers file type automatically)
-                atoms = read(filename)
-                # Create the supercell using the repeat method
-                supercell_atoms = atoms.repeat(self.supercell)
+                atoms = read(filename)                          # Read the atomic structure from the file
+                supercell_atoms = atoms.repeat(self.supercell)  # Create the supercell using the repeat method
                 self._supercells.append(supercell_atoms)
 
     def get_supercells(self):
@@ -159,7 +153,7 @@ class DSIModel(Alloy):
                 dilute_matrix_row.append(new_atoms)
             dilute_supercells_matrix.append(dilute_matrix_row)
 
-        print("    Listing dilute alloys:", list_alloys)
+        print("    Listing dilute alloys:", list_alloys)    # ['Au32', 'Au31Pt1', 'Au1Pt31', 'Pt32']
         return dilute_supercells_matrix
 
 
@@ -283,17 +277,19 @@ class DSIModel(Alloy):
 
     def get_diluting_parameters(self, verbose: bool = True) -> np.ndarray:
         """
-        Calculate the diluting parameters for the given dilute alloys.
-
-        This method computes the diluting parameters matrix (m_dsi) for the dilute alloys
-        based on the energy differences between the alloys and their components.
-
+        Calculate and return the diluting parameters matrix in kJ/mol.
+        This method computes the diluting parameters matrix based on the energy matrix
+        and stores it as an attribute of the DSIModel instance. If the diluting parameters
+        matrix is already computed and stored, it returns the stored matrix.
+        Args:
+            verbose (bool): If True, prints detailed information about the computation process.
+                            Default is True.
         Returns:
-            np.ndarray: A 2D numpy array containing the diluting parameters in kJ/mol.
-
+            np.ndarray: The diluting parameters matrix in kJ/mol.
         Raises:
-            ValueError: If not all supercells have the same number of atoms.
+            NotImplementedError: If not all supercells have the same number of atoms.
         """
+
         if verbose:
             print("-----------------------------------------------")
             print("\033[36mDiluting parameters matrix (in kJ/mol)\033[0m")

@@ -112,6 +112,8 @@ Calculate the enthalpy of mixing for the AuPt alloy:
 ```python
 # Calculate the enthalpy of mixing
 enthalpy_of_mixing = blendpy.get_enthalpy_of_mixing(npoints=101)
+x = np.linspace(0, 1, len(enthalpy_of_mixing))
+df_enthalpy = pd.DataFrame({'x': x, 'enthalpy': enthalpy_of_mixing})
 ```
 
 Plotting the enthalpy of mixing
@@ -121,7 +123,6 @@ import matplotlib.pyplot as plt
 
 fig, ax = plt.subplots(1,1, figsize=(5,5))
 
-x = np.linspace(0, 1, 101)
 ax.set_xlabel("$x$", fontsize=20)
 ax.set_ylabel("$\Delta H_{mix}$ (kJ/mol)", fontsize=20)
 ax.set_xlim(0,1)
@@ -130,12 +131,12 @@ ax.set_xticks(np.linspace(0,1,6))
 ax.set_yticks(np.arange(-6,7,2))
 
 # Plot the data
-ax.plot(x, enthalpy_of_mixing, color='#d53e4f', linewidth=3, zorder=2)
-ax.scatter(x[::10], enthalpy_of_mixing[::10], color='#d53e4f', s=80, zorder=2, label="Au$_{1-x}$Pt$_{x}$")
+color1='#fc4e2a'
+ax.plot(df_enthalpy['x'][::5], df_enthalpy['enthalpy'][::5], marker='o', color=color1, markersize=8, linewidth=3, zorder=2, label="DSI Model (MACE)")
 
-# Reference: H. Okamoto and T.B. Massalski, Bull. Alloy Phase Diagrams 1 (1985) 46.
+# REFERENCE: H. Okamoto and T. Massalski, The Au-Pd (gold-palladium) system, Bulletin of Alloy Phase Diagrams 6, 229 (1985).
 df_exp = pd.read_csv("data/experimental/exp_AuPt.csv")
-ax.plot(df_exp['x'][::2], df_exp['enthalpy'][::2], 's', color='#000000', markersize=8, label="Exp. Data", zorder=1)
+ax.plot(df_exp['x'], df_exp['enthalpy'], 's', color='grey', markersize=8, label="Exp. Data", zorder=1)
 ax.legend(loc="best", fontsize=16)
 
 ax.tick_params(direction='in', axis='both', which='major', labelsize=20, width=3, length=8)

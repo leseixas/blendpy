@@ -74,7 +74,7 @@ class PhaseDiagram():
         """
         self.gibbs_free_energy = self.enthalpy - self.temperatures[:, None] * self.entropy
         return self.gibbs_free_energy
-    
+
 
     def get_spinodal_decomposition(self, verbose: bool = True) -> pd.DataFrame:
         if verbose:
@@ -113,6 +113,38 @@ class PhaseDiagram():
         
         return spinodal
         # return df_spinodal
+
+
+    def get_new_spinodal_decomposition(self, verbose: bool = True) -> pd.DataFrame:
+
+        # Calculate the first derivative with respect to composition
+        dG_dcomp = np.gradient(self.gibbs_free_energy, self.x, axis=1)
+
+        # Calculate the second derivative with respect to composition
+        d2G_dcomp2 = np.gradient(dG_dcomp, self.x, axis=1)
+
+        # Find the compositions where the second derivative is zero or changes sign.
+        spinodal_points = []
+
+        for i, T in enumerate(self.temperatures):
+            row = d2G_dcomp2[i, :]
+            # Loop over adjacent composition points
+            for j in range(len(self.x) - 1):
+                # Check if exactly zero (or nearly zero)
+                if np.isclose(row[j], 0, atol=1e-6):
+                    spinodal_points.append((T, self.x[j]))
+                # Check for a sign change between row[j] and row[j+1]
+                elif row[j] * row[j+1] < 0:
+                    # Linear interpolation to estimate the zero crossing composition:
+                    c1, c2 = self.x[j], self.x[j+1]
+                    d1, d2 = row[j], row[j+1]
+                    # Linear interpolation formula: c_zero = c1 - d1*(c2-c1)/(d2-d1)
+                    c_zero = c1 - d1 * (c2 - c1) / (d2 - d1)
+                    spinodal_points.append((c_zero, T))
+
+        # Convert the list of tuples into a pandas DataFrame
+        spinodal_df = pd.DataFrame(spinodal_points, columns=['x', 't'])
+        return spinodal_df
 
     
     def _dif_gibbs(self):

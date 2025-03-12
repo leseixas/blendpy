@@ -7,7 +7,7 @@ from ase import Atoms
 from ase.io import read
 from ase.calculators.emt import EMT
 from blendpy.dsi_model import DSIModel
-from ase.optimize import BFGS
+from ase.optimize import BFGS, LBFGS
 import numpy as np
 from blendpy.constants import *
 
@@ -169,7 +169,7 @@ def test_create_dilute_alloys(setup_data):
         for j in range(n):
             assert dilute_alloys[i][j].get_chemical_symbols()[doping_site] == dopant[j]
 
-
+# optimize
 def test_optimize_with_default_parameters(setup_data):
     """
     Test the optimize method of the DSIModel class with default parameters.
@@ -219,6 +219,59 @@ def test_optimize_with_custom_parameters(setup_data):
     custom_mask = [1, 1, 0, 0, 0, 1]
     
     model.optimize(method=custom_method, fmax=custom_fmax, steps=custom_steps, logfile=custom_logfile, mask=custom_mask)
+    
+    for row in model._dilute_alloys:
+        for atoms in row:
+            assert 'energy' in atoms.info
+            assert atoms.info['energy'] is not None
+
+# optimize_nostress
+def test_optimize_nostress_with_default_parameters(setup_data):
+    """
+    Test the optimize_nostress method of the DSIModel class with default parameters.
+
+    This test verifies that the optimize_nostress method correctly optimizes the Atoms objects
+    in the dilute_alloys attribute using the default optimization parameters. It checks the following:
+    
+    - The method runs without errors.
+    - The total energy of each Atoms object is updated after optimization.
+
+    Args:
+        setup_data (tuple): A tuple containing alloy_components, supercell, calculator, and doping_site.
+    """
+    alloy_components, supercell, calculator, doping_site = setup_data
+    model = DSIModel(alloy_components=alloy_components, supercell=supercell, calculator=calculator, doping_site=doping_site)
+    
+    model.optimize_nostress()  # default arguments
+    
+    for row in model._dilute_alloys:
+        for atoms in row:
+            assert 'energy' in atoms.info
+            assert atoms.info['energy'] is not None
+
+
+def test_optimize_nostress_with_custom_parameters(setup_data):
+    """
+    Test the optimize_nostress method of the DSIModel class with custom parameters.
+
+    This test verifies that the optimize_nostress method correctly optimizes the Atoms objects
+    in the dilute_alloys attribute using custom optimization parameters. It checks the following:
+    
+    - The method runs without errors.
+    - The total energy of each Atoms object is updated after optimization.
+    - The custom parameters are correctly applied.
+
+    Args:
+        setup_data (tuple): A tuple containing alloy_components, supercell, calculator, and doping_site.
+    """
+    alloy_components, supercell, calculator, doping_site = setup_data
+    model = DSIModel(alloy_components=alloy_components, supercell=supercell, calculator=calculator, doping_site=doping_site)
+    
+    custom_fmax = 0.05
+    custom_steps = 300
+    custom_logfile = "test_optimize_nostress.log"
+    
+    model.optimize_nostress(fmax=custom_fmax, steps=custom_steps, logfile=custom_logfile)
     
     for row in model._dilute_alloys:
         for atoms in row:
@@ -702,7 +755,4 @@ def test_get_enthalpy_of_mixing_with_invalid_npoints(setup_data):
     
     with pytest.raises(ValueError, match="The number of points must be greater than 1."):
         model.get_enthalpy_of_mixing(npoints=1)
-    
-
-
 

@@ -1,6 +1,6 @@
 import os
 
-LOGFILES = ['optimize.log', 'test_optimize.log']
+LOGFILES = ['optimize.log', 'test_optimize.log', 'test_optimize_nostress.log']
 
 def pytest_sessionfinish(session, exitstatus):
     print("\n\n  FINISHING TESTS")

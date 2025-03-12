@@ -157,33 +157,72 @@ class DSIModel(Alloy):
         return dilute_supercells_matrix
 
 
-    def optimize(self, method=BFGSLineSearch, fmax: float = 0.01, steps: int = 500, logfile: str = 'optimize.log', mask: list = [1,1,1,1,1,1]):
+    def optimize(self, method=BFGSLineSearch, fmax: float = 0.01, steps: int = 500, logfile: str = 'optimize.log', mask: list = [1,1,1,1,1,1], verbose: bool = True):
         """
-        Atoms objects are optimized according to the specified optimization method and parameters.
-        
+        Optimize the structure of dilute alloys using the specified optimization method.
+
         Parameters:
-            method (class): The method to optimize the Atoms object (Default: BFGSLineSearch).
-            fmax (float): The maximum force criteria (Default: 0.01 eV/ang).
-            steps (int): The maximum number of optimization steps (Default: 500).
-            logfile (string): Specifies the file name where the computed optimization forces will be recorded (Default: 'optimize.log').
-            mask (list): A list of directions and angles in Voigt notation that can be optimized.
-                         A value of 1 enables optimization, while a value of 0 fixes it. (Default: [1,1,1,1,1,1])
+        method (Optimizer): The optimization method to use (default is BFGSLineSearch).
+        fmax (float): The maximum force criteria for convergence in eV/angstrom (default is 0.01).
+        steps (int): The maximum number of optimization steps (default is 500).
+        logfile (str): The name of the logfile to store optimization details (default is 'optimize.log').
+        mask (list): A list of integers specifying which degrees of freedom to optimize (default is [1, 1, 1, 1, 1, 1]).
+        verbose (bool): If True, prints detailed information during optimization (default is True).
+
+        Returns:
+        None
         """
-        print("-----------------------------------------------")
-        print("\033[36mDilute alloys optimization\033[0m")
-        print("-----------------------------------------------")
-        print("    Optimization method:", method.__name__)
-        print("    Maximum force criteria:", fmax, "eV/ang")
-        print("    Maximum number of steps:", steps)
-        print("    Logfile:", logfile)
-        print("    Mask:", mask)
+        if verbose:
+            print("-----------------------------------------------")
+            print("\033[36mDilute alloys optimization\033[0m")
+            print("-----------------------------------------------")
+            print("    Optimization method:", method.__name__)
+            print("    Maximum force criteria:", fmax, "eV/ang")
+            print("    Maximum number of steps:", steps)
+            print("    Logfile:", logfile)
+            print("    Mask:", mask)
 
         for row in self._dilute_alloys:
             for atoms in row:
                 ucf = UnitCellFilter(atoms, mask=mask)
                 optimizer = method(ucf, logfile=logfile)
                 optimizer.run(fmax=fmax, steps=steps)
-                print(f"    Total energy ({atoms.get_chemical_formula()}) [Relaxed]: {atoms.get_potential_energy()} eV")
+                if verbose:
+                    print(f"    Total energy ({atoms.get_chemical_formula()}) [Relaxed]: {atoms.get_potential_energy()} eV")
+
+
+    def optimize_nostress(self, fmax: float = 0.01, steps: int = 500, logfile: str = 'optimize.log', verbose: bool = True):
+        """
+        Optimize the structure of dilute alloys without stress.
+
+        Parameters:
+        -----------
+        fmax : float, optional
+            Maximum force criteria for the optimization in eV/angstrom. Default is 0.01.
+        steps : int, optional
+            Maximum number of optimization steps. Default is 500.
+        logfile : str, optional
+            Name of the file where the optimization log will be saved. Default is 'optimize.log'.
+        verbose : bool, optional
+            If True, prints detailed information about the optimization process. Default is True.
+
+        Returns:
+        --------
+        None
+        """
+        if verbose:
+            print("-----------------------------------------------")
+            print("\033[36mDilute alloys optimization\033[0m")
+            print("-----------------------------------------------")
+            print("    Maximum force criteria:", fmax, "eV/ang")
+            print("    Maximum number of steps:", steps)
+            print("    Logfile:", logfile)
+        for row in self._dilute_alloys:
+            for atoms in row:
+                optimizer = LBFGS(atoms, logfile=logfile)
+                optimizer.run(fmax=fmax, steps=steps)
+                if verbose:
+                    print(f"    Total energy ({atoms.get_chemical_formula()}) [Relaxed]: {atoms.get_potential_energy()} eV")
 
 
     def set_energy_matrix(self, energy_matrix: np.ndarray):

@@ -30,6 +30,7 @@ from ase.atoms import Atoms
 from .constants import R, convert_eVatom_to_kJmol
 from ase.optimize import BFGS, BFGSLineSearch, LBFGS, LBFGSLineSearch, MDMin, GPMin, FIRE, FIRE2, ODE12r, GoodOldQuasiNewton
 from ase.filters import UnitCellFilter
+from ase.parallel import parprint as print
 
 
 class Alloy(Atoms):

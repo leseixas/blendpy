@@ -46,6 +46,7 @@ from yaml import __file__ as __yaml_file__
 from tqdm import __version__ as __tqdm_version__
 from tqdm import __file__ as __tqdm_file__
 
+from ase.parallel import parprint as print
 from ._version import __version__
 from .constants import R, convert_eVatom_to_kJmol
 from .alloy import Alloy

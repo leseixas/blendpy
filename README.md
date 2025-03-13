@@ -136,7 +136,7 @@ ax.set_yticks(np.arange(-6,7,2))
 color1='#fc4e2a'
 ax.plot(df_enthalpy['x'][::5], df_enthalpy['enthalpy'][::5], marker='o', color=color1, markersize=8, linewidth=3, zorder=2, label="DSI Model (MACE)")
 
-# REFERENCE: H. Okamoto and T. Massalski, The Au-Pd (gold-palladium) system, Bulletin of Alloy Phase Diagrams 6, 229 (1985).
+# REFERENCE: Okamoto, H. and Massalski, T., The Au-Pt (gold-platinum) system, Bull. Alloy Phase Diagr. 6, 46-56 (1985).
 df_exp = pd.read_csv("data/experimental/exp_AuPt.csv")
 ax.plot(df_exp['x'], df_exp['enthalpy'], 's', color='grey', markersize=8, label="Exp. Data", zorder=1)
 ax.legend(loc="best", fontsize=16)

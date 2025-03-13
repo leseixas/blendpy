@@ -75,6 +75,7 @@ class Alloy(Atoms):
         self._chemical_elements = []                       # Example: [['Au', 'Au', 'Au', 'Au'], ['Pd', 'Pd', 'Pd', 'Pd']]
         self._alloy_atoms = []                             # Example: [Atoms('Au4'), Atoms('Pd4')]
         self._store_from_atoms()
+        self._simplex_space = None
 
         # If a calculator is provided, attach it to each Atoms object.
         if calculator is not None:
@@ -210,7 +211,80 @@ class Alloy(Atoms):
         return delta_energy * convert_eVatom_to_kJmol # converting value to kJ/mol
 
 
-    def get_configurational_entropy(self, eps: float = 1.e-6, npoints: int = 101) -> np.ndarray:
+    def create_simplex_space(self, resolution: int = 50):
+        """
+        Create a simplex space for the compositional grid of an alloy.
+        This method generates a grid of points in an N-dimensional simplex space,
+        where N is the number of components in the alloy. The points in the simplex
+        space are normalized such that they sum to 1.
+        Parameters:
+        resolution (int): The resolution of the grid. Must be a positive integer.
+        Raises:
+        ValueError: If resolution is not an integer.
+        ValueError: If resolution is less than or equal to zero.
+        ValueError: If the number of components (self.n_components) < 2.
+        Returns:
+        None: The generated simplex space is stored in the instance variable
+        self._simplex_space.
+        """
+
+        if isinstance(resolution, int) == False:
+            raise ValueError("resolution must be an integer.")
+        if resolution <= 0:
+            raise ValueError("resolution must be greater than zero.")
+        if self.n_components < 2:
+            raise ValueError("The compositional space grid cannot be created for n_components less than 2.")
+
+        # Create an N-dimensional grid of indices from 0 to resolution
+        grid_shape = (resolution + 1,) * self.n_components
+        indices = np.indices(grid_shape).reshape(self.n_components, -1).T  # shape: (total_points, n_components)
+        
+        # Filter the indices that sum to resolution
+        mask = np.sum(indices, axis=1) == resolution
+        simplex_indices = indices[mask]
+        
+        # Normalize the indices to get points on the simplex (they sum to 1)
+        simplex_points = simplex_indices / resolution
+
+        # Store the simplex space in the instance variable
+        self._simplex_space = simplex_points
+
+
+    def get_simplex_space(self, resolution: int = 50):
+        """
+        Get the compositional space grid for the alloy.
+
+        Parameters:
+        resolution (int, optional): The resolution of the grid. Default is 50.
+
+        Returns:
+        np.ndarray: A grid of compositional space points.
+        """
+        if self._simplex_space is None:
+            self.create_simplex_space(resolution)
+        return self._simplex_space
+
+
+    def get_ideal_configurational_entropy(self, resolution: int = 50, eps: float = 1.e-3) -> np.ndarray:
+        """
+        Calculate the ideal configurational entropy of the system.
+
+        Parameters:
+        resolution (int): The resolution of the simplex space. Default is 50.
+        eps (float): A small value to avoid log(0). Default is 1.e-3.
+
+        Returns:
+        np.ndarray: The calculated ideal configurational entropy.
+        """
+        if eps <= 0:
+            raise ValueError("eps must be greater than zero.")
+
+        x = self.get_simplex_space(resolution)
+        entropy = -R * np.sum( (x+eps) * np.log(x + eps), axis=-1 )
+        return entropy
+
+        
+    def get_binary_configurational_entropy(self, eps: float = 1.e-6, npoints: int = 101) -> np.ndarray:
         """
         Calculate the configurational entropy of an alloy.
 

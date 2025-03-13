@@ -45,6 +45,8 @@ from yaml import __version__ as __yaml_version__
 from yaml import __file__ as __yaml_file__
 from tqdm import __version__ as __tqdm_version__
 from tqdm import __file__ as __tqdm_file__
+from mpltern import __version__ as __mpltern_version__
+from mpltern import __file__ as __mpltern_file__
 
 from ase.parallel import parprint as print
 from ._version import __version__
@@ -108,7 +110,8 @@ def starter(color='cyan'):
     print(f"├── {color_start}pandas version:{color_end} {__pandas_version__}    [{__pandas_file__[:-11]}]")
     print(f"├── {color_start}pytest version:{color_end} {__pytest_version__}    [{__pytest_file__[:-11]}]")
     print(f"├── {color_start}yaml version:{color_end} {__yaml_version__}    [{__yaml_file__[:-11]}]")
-    print(f"└── {color_start}tqdm version:{color_end} {__tqdm_version__}    [{__tqdm_file__[:-11]}]")
+    print(f"├── {color_start}tqdm version:{color_end} {__tqdm_version__}    [{__tqdm_file__[:-11]}]")
+    print(f"└── {color_start}mpltern version:{color_end} {__mpltern_version__}    [{__mpltern_file__[:-11]}]")
     print("                                               ")
 
 

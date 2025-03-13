@@ -48,7 +48,7 @@ class Alloy(Atoms):
             Calculate the energy difference per atom between two structures after optimizing their structures.
         get_configurational_entropy(eps: float = 1.e-4, npoints: int = 101):
     """
-    def __init__(self, alloy_components: list, calculator = None):
+    def __init__(self, alloy_components: list = [], calculator = None):
         """
         Initialize an Alloy object with given alloy components and an optional calculator.
 
@@ -97,10 +97,13 @@ class Alloy(Atoms):
         """
         list_atoms = []
         list_elements = []
-        for filename in self.alloy_components:
-            atoms = read(filename)
-            list_atoms.append(atoms)
-            list_elements.append(atoms.get_chemical_symbols())
+        if len(self.alloy_components) > 0:
+            for filename in self.alloy_components:
+                if isinstance(filename, str) == False:
+                    raise ValueError("The alloy components must be strings.")
+                atoms = read(filename)
+                list_atoms.append(atoms)
+                list_elements.append(atoms.get_chemical_symbols())
         self._alloy_atoms = list_atoms
         self._chemical_elements = list_elements
 
@@ -114,7 +117,7 @@ class Alloy(Atoms):
         return self._chemical_elements                     # Example: [['Au', 'Au', 'Au', 'Au'], ['Pd', 'Pd', 'Pd', 'Pd']]
     
     
-    def get_energies(self) -> list:
+    def get_energies(self, verbose: bool = False) -> list:
         """
         Calculate and return the potential energies of all alloy atoms.
 
@@ -126,15 +129,17 @@ class Alloy(Atoms):
             list: A list of potential energies for each atom in the alloy.
         """
         energies = []
-        for atoms in self._alloy_atoms:
-            energy = atoms.get_potential_energy()
-            atoms.info['energy'] = energy
-            # print(f"    Total energy ({atoms.get_chemical_formula()}) [Non-relaxed]: {energy} eV")
-            energies.append(energy)
+        if len(self._alloy_atoms) > 0:
+            for atoms in self._alloy_atoms:
+                energy = atoms.get_potential_energy()
+                atoms.info['energy'] = energy
+                if verbose:
+                    print(f"    Total energy ({atoms.get_chemical_formula()}) [Non-relaxed]: {energy} eV")
+                energies.append(energy)
         return energies                                     # Example: [-12.4, -10.2]
 
 
-    def optimize(self, method=BFGSLineSearch, fmax: float = 0.01, steps: int = 500, logfile = None, mask: list = [1,1,1,1,1,1]):
+    def optimize(self, method=BFGSLineSearch, fmax: float = 0.01, steps: int = 500, logfile = None, mask: list = [1,1,1,1,1,1], verbose: bool = False):
         """
         Optimize the atomic structure using the specified optimization method.
 
@@ -178,7 +183,8 @@ class Alloy(Atoms):
             ucf = UnitCellFilter(atoms, mask=mask)
             optimizer = method(ucf, logfile=logfile)
             optimizer.run(fmax=fmax, steps=steps)
-            # print(f"    Total energy ({atoms.get_chemical_formula()}) [Relaxed]: {atoms.get_potential_energy()} eV")
+            if verbose:
+                print(f"    Total energy ({atoms.get_chemical_formula()}) [Relaxed]: {atoms.get_potential_energy()} eV")
 
 
     def get_structural_energy_transition(self, method=BFGSLineSearch, fmax: float = 0.01, steps: int = 500, logfile = None, mask: list = [1,1,1,1,1,1]) -> float:

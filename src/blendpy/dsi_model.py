@@ -153,7 +153,7 @@ class DSIModel(Alloy):
                 dilute_matrix_row.append(new_atoms)
             dilute_supercells_matrix.append(dilute_matrix_row)
 
-        print("    Listing dilute alloys:", list_alloys)    # ['Au32', 'Au31Pt1', 'Au1Pt31', 'Pt32']
+        print("    Listing dilute alloys:", list_alloys)   # Example: ['Au32', 'Au31Pt1', 'Au1Pt31', 'Pt32']
         return dilute_supercells_matrix
 
 

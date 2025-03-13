@@ -156,6 +156,89 @@ plt.show()
 
 ### DSI model from pre-calculated data
 
+Using blendpy, we can also calculate the enthalpy of mixing for an alloy based on DFT simulations that are not initiated by the `DSIModel` class object. Instead, we can use external data for the total energies of the pristine and dilute supercell systems. For instance, using the *ab initio* simulation software GPAW,[^fn1] we calculate the total energies for the Au-Pt alloy using `[3,3,3]` supercells of Au and Pt (`Atoms(Au27)` and `Atoms(Pt27)`), as well as the dilute systems (`Atoms(Au26Pt)` and `Atoms(Pt26Au)`). These total energies are then used to construct the energy matrix (`energy_matrix`) in the following form:
+
+```python 
+
+energy_matrix = np.array([[ -85.940400,  -89.230299],   # [[  Au27, Au26Pt],
+                          [-170.278459, -173.891172]])  #  [ Pt26Au,  Pt27]]
+```
+
+Next, we demonstrate how to calculate the enthalpy of mixing using the input energy matrix.
+
+```python
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+from ase.build import bulk
+from ase.io import write
+from blendpy import DSIModel
+
+# Create the two bulk structures
+gold = bulk('Au', 'fcc')
+palladium = bulk('Pt', 'fcc')
+
+# Write the structures to CIF files
+write("cif_files/Au.cif", gold)
+write("cif_files.Pt.cif", palladium)
+
+# Create the DSI model
+alloy_components = ['cif_files/Au.cif', 'cif_files/Pt.cif']
+x0 = 1./27
+blendpy= DSIModel(alloy_components=alloy_components, supercell=[3,3,3], x0=x0)
+
+# Set the energy matrix
+energy_matrix = np.array([[ -85.940400,  -89.230299],
+                          [-170.278459, -173.891172]])
+
+blendpy.set_energy_matrix(energy_matrix)
+
+enthalpy= blendpy.get_enthalpy_of_mixing()
+
+x = np.linspace(0, 1, len(enthalpy))
+
+df_enthalpy = pd.DataFrame({'x': x, 'enthalpy': enthalpy})
+```
+
+In this case, it is **MANDATORY** to specify the minimum dilution factor (`x0`), the supercell size (`[3,3,3]`) used in the *ab initio* simulations, and the unit cell files (`'Au.cif'` and `'Pt.cif'`). The unit cell files do not need to match exactly those used in the *ab initio* simulations.
+
+Finally, we can plot the enthalpy of mixing and compare it with the experimental data.[^fn2]
+```python
+# Plot the enthalpy of mixing
+fig, ax = plt.subplots(1,1, figsize=(6,6))
+
+ax.set_xlabel('x', fontsize=20)
+ax.set_ylabel('$\Delta H_{mix}$ (kJ/mol)', fontsize=20)
+ax.set_xlim(0,1)
+ax.set_ylim(-7,7)
+ax.set_xticks(np.linspace(0,1,6))
+ax.set_yticks(np.arange(-6,7,2))
+ax.set_title("Au$_{1-x}$Pt$_{x}$", fontsize=20, pad=10)
+
+# plot data
+# Experimental
+df_exp = pd.read_csv("../../data/experimental/exp_AuPt.csv")
+ax.plot(df_exp['x'], df_exp['enthalpy'], 's', color='grey', linestyle='--', linewidth=3, markersize=8, label="Exp. Data", zorder=1)
+
+# DSI model
+ax.plot(df_enthalpy['x'][::5], df_enthalpy['enthalpy'][::5], marker='o', color='#fc4e2a', markersize=8, linewidth=3, zorder=2, label="DSI model from DFT")
+
+ax.legend(fontsize=16, loc='best')
+ax.tick_params(axis='both', which='major', labelsize=20, width=3, length=8, direction='in')
+ax.set_box_aspect(1)
+
+for spine in ax.spines.values():
+    spine.set_linewidth(3)
+
+plt.tight_layout()
+# plt.savefig('enthalpy_of_mixing_AuPt_from_input.png', dpi=400, bbox_inches='tight')
+plt.show()
+```
+
+<p align="center">
+<img src="https://raw.githubusercontent.com/leseixas/blendpy/refs/heads/main/figs/enthalpy_of_mixing_AuPt_from_input.png" style="height: 400px"></p>
+
+<p align="center"><a name="fig1">Figure 2</a> - Enthalpy of mixing of the Au-Pt alloy computed using the DSI model and energy matrix given from input (calculated with GPAW).</p>
 
 ### Polymorphism
 
@@ -239,3 +322,9 @@ This is an open source code under [MIT License](LICENSE).
 # Acknowledgements
 
 We thank financial support from FAPESP [(Grant No. 2022/14549-3)](https://bvs.fapesp.br/pt/auxilios/111791/materiais-de-alta-entropia-inteligiveis-desenvolvendo-modelos-dados-e-aplicacoes/), INCT Materials Informatics (Grant No. 406447/2022-5), and CNPq (Grant No. 311324/2020-7).
+
+# References
+
+[^fn1]: J. J. Mortensen *et al.*, *J. Chem. Phys.* **160** 092503 (2024).
+
+[^fn2]: H. Okamoto and T. Massalski, *Bull. Alloy Phase Diagr.* **6**, 229 (1985).

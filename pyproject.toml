@@ -4,14 +4,14 @@ build-backend = "hatchling.build"
 
 [project]
 name = "blendpy"
-version = "25.3.41"
+version = "25.3.42"
 authors = [
   { name="Leandro Seixas", email="leandro.fisica@gmail.com" },
 ]
 description = "Blendpy is a computational toolkit for investigating thermodynamic models of alloys using first-principles calculations."
 readme = "README.md"
 license = {file = "LICENSE"} 
-requires-python = ">=3.11"
+requires-python = ">=3.8"
 dependencies = [
     'numpy',
     'pandas',

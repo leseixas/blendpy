@@ -16,7 +16,7 @@
         - [Enthalpy of mixing](#enthalpy-of-mixing)
         - [DSI model from pre-calculated data](#dsi-model-from-pre-calculated-data)
         - [Polymorphism](#polymorphism)
-        - [Pseudo binary alloy](#pseudo-binary-alloy)
+        <!-- - [Pseudo binary alloy](#pseudo-binary-alloy) -->
         - [Ternary alloy](#ternary-alloy)
         - [Phase diagram](#phase-diagram)
     <!-- - [Cluster expansion](#cluster-expansion) -->
@@ -24,6 +24,7 @@
     <!-- - [Intermetallics](#intermetallics) -->
 - [License](#license)
 - [Acknowledgements](#acknowledgements)
+- [References](#references)
 
 # Installation
 
@@ -43,7 +44,7 @@ If you already have these optimized structures, you may skip ahead to the "[DSI 
 
 ## Geometry optimization
 
-For example, let's calculate the properties of an Au-Pt alloy. We begin by retrieving the Au (fcc) and Pt (fcc) geometries from ASE. Next, we optimize these geometries using the MACE calculator, which leverages machine learning interatomic potentials. Finally, we save the optimized structures for use in the DSI model. To achieve this, we will follow several key steps. 
+For example, let's calculate the properties of an Au-Pt alloy. We begin by retrieving the Au (fcc) and Pt (fcc) geometries from ASE. Next, we optimize these geometries using the MACE calculator, which leverages machine learning interatomic potentials.[^fn1] Finally, we save the optimized structures for use in the DSI model. To achieve this, we will follow several key steps. 
 
 **Step 1:** Import the necessary modules from ASE and MACE:
 ```python
@@ -157,7 +158,7 @@ plt.show()
 
 ### DSI model from pre-calculated data
 
-Using blendpy, we can also calculate the enthalpy of mixing for an alloy based on DFT simulations that are not initiated by the `DSIModel` class object. Instead, we can use external data for the total energies of the pristine and dilute supercell systems. For instance, using the *ab initio* simulation software GPAW,[^fn1] we calculate the total energies for the Au-Pt alloy using `[3,3,3]` supercells of Au and Pt (`Atoms(Au27)` and `Atoms(Pt27)`), as well as the dilute systems (`Atoms(Au26Pt)` and `Atoms(Pt26Au)`). These total energies are then used to construct the energy matrix (`energy_matrix`) in the following form:
+Using blendpy, we can also calculate the enthalpy of mixing for an alloy based on DFT simulations that are not initiated by the `DSIModel` class object. Instead, we can use external data for the total energies of the pristine and dilute supercell systems. For instance, using the *ab initio* simulation software GPAW,[^fn2] we calculate the total energies for the Au-Pt alloy using `[3,3,3]` supercells of Au and Pt (`Atoms(Au27)` and `Atoms(Pt27)`), as well as the dilute systems (`Atoms(Au26Pt)` and `Atoms(Pt26Au)`). These total energies are then used to construct the energy matrix (`energy_matrix`) in the following form:
 
 ```python 
 
@@ -203,7 +204,7 @@ df_enthalpy = pd.DataFrame({'x': x, 'enthalpy': enthalpy})
 
 In this case, it is **MANDATORY** to specify the minimum dilution factor (`x0`), the supercell size (`[3,3,3]`) used in the *ab initio* simulations, and the unit cell files (`'Au.cif'` and `'Pt.cif'`). The unit cell files do not need to match exactly those used in the *ab initio* simulations.
 
-Finally, we can plot the enthalpy of mixing and compare it with the experimental data.[^fn2]
+Finally, we can plot the enthalpy of mixing and compare it with the experimental data.[^fn3]
 ```python
 # Plot the enthalpy of mixing
 fig, ax = plt.subplots(1,1, figsize=(6,6))
@@ -244,7 +245,7 @@ plt.show()
 ### Polymorphism
 
 
-### Pseudo binary alloy
+<!-- ### Pseudo binary alloy -->
 
 
 ### Ternary alloy
@@ -332,6 +333,9 @@ We thank financial support from FAPESP [(Grant No. 2022/14549-3)](https://bvs.fa
 
 # References
 
-[^fn1]: J. J. Mortensen *et al.*, *J. Chem. Phys.* **160** 092503 (2024).
+[^fn1]: Batatia, I., et al., [MACE: Higher Order Equivariant Message Passing
+Neural Networks for Fast and Accurate Force Fields](https://proceedings.neurips.cc/paper_files/paper/2022/file/4a36c3c51af11ed9f34615b81edb5bbc-Paper-Conference.pdf) *Adv. Neural Inf. Process Syst.* **35**, 11423 (2022). 
 
-[^fn2]: H. Okamoto and T. Massalski, *Bull. Alloy Phase Diagr.* **6**, 229 (1985).
+[^fn2]: Mortensen, J. J., et al., [GPAW: An open Python package for electronic structure calculations](https://doi.org/10.1063/5.0182685) *J. Chem. Phys.* **160**, 092503 (2024).
+
+[^fn3]: Okamoto, H. and Massalski, T., [The Au−Pt (Gold-Platinum) system](https://doi.org/10.1007/BF02871187)  *Bull. Alloy Phase Diagr.* **6**, 46-56 (1985).

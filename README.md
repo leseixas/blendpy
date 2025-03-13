@@ -16,8 +16,9 @@
         - [Enthalpy of mixing](#enthalpy-of-mixing)
         - [DSI model from pre-calculated data](#dsi-model-from-pre-calculated-data)
         - [Polymorphism](#polymorphism)
+        - [Pseudo binary alloy](#pseudo-binary-alloy)
+        - [Ternary alloy](#ternary-alloy)
         - [Phase diagram](#phase-diagram)
-        <!-- - [Ternary alloys](#ternary-alloys) -->
     <!-- - [Cluster expansion](#cluster-expansion) -->
     <!-- - [Special quasirandom structure (SQS)](#special-quasirandom-structure-sqs) -->
     <!-- - [Intermetallics](#intermetallics) -->
@@ -243,6 +244,13 @@ plt.show()
 ### Polymorphism
 
 
+### Pseudo binary alloy
+
+
+### Ternary alloy
+
+
+
 ### Phase diagram (NOT WORKING)
 
 By analyzing the mixing enthalpies and entropies, we can calculate the Gibbs free energy of the Au–Pt alloy mixture and determine both the spinodal and binodal (solvus) decomposition curves. These curves, which form key features of the alloy's phase diagram, delineate regions of differing stability: below the binodal curve, the solid solution (Au, Pt) is metastable, whereas it becomes unstable beneath the spinodal curve.
@@ -307,7 +315,6 @@ plt.show()
 
 <p align="center"><a name="fig1">Figure 2</a> - Phase diagram of the Au–Pt alloy computed using the DSI model and MACE interatomic potentials.</p>
 
-<!-- ### Ternary alloys -->
 
 <!-- ## Cluster expansion -->
 

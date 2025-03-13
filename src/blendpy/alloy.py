@@ -24,6 +24,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
+from warnings import deprecated
 import numpy as np
 from ase.io import read
 from ase.atoms import Atoms
@@ -140,7 +141,9 @@ class Alloy(Atoms):
         return energies                                     # Example: [-12.4, -10.2]
 
 
-    def optimize(self, method=BFGSLineSearch, fmax: float = 0.01, steps: int = 500, logfile = None, mask: list = [1,1,1,1,1,1], verbose: bool = False):
+    def optimize(self, method=BFGSLineSearch, fmax: float = 0.01,
+                 steps: int = 500, logfile = None,
+                 mask: list = [1,1,1,1,1,1], verbose: bool = False):
         """
         Optimize the atomic structure using the specified optimization method.
 
@@ -188,7 +191,9 @@ class Alloy(Atoms):
                 print(f"    Total energy ({atoms.get_chemical_formula()}) [Relaxed]: {atoms.get_potential_energy()} eV")
 
 
-    def get_structural_energy_transition(self, method=BFGSLineSearch, fmax: float = 0.01, steps: int = 500, logfile = None, mask: list = [1,1,1,1,1,1]) -> float:
+    def get_structural_energy_transition(self, method=BFGSLineSearch,
+                                         fmax: float = 0.01,steps: int = 500,
+                                         logfile = None, mask: list = [1,1,1,1,1,1]) -> float:
         """
         This method calculates the energy difference per atom between two
         structure after optimizing their structures. The result is converted from
@@ -265,7 +270,8 @@ class Alloy(Atoms):
         return self._simplex_space
 
 
-    def get_ideal_configurational_entropy(self, resolution: int = 50, eps: float = 1.e-3) -> np.ndarray:
+    def get_ideal_configurational_entropy(self, resolution: int = 50,
+                                          eps: float = 1.e-3) -> np.ndarray:
         """
         Calculate the ideal configurational entropy of the system.
 
@@ -283,8 +289,10 @@ class Alloy(Atoms):
         entropy = -R * np.sum( (x+eps) * np.log(x + eps), axis=-1 )
         return entropy
 
-        
-    def get_binary_configurational_entropy(self, eps: float = 1.e-6, npoints: int = 101) -> np.ndarray:
+
+    @deprecated("Use get_ideal_configurational_entropy instead.")    
+    def get_binary_configurational_entropy(self, eps: float = 1.e-6,
+                                           npoints: int = 101) -> np.ndarray:
         """
         Calculate the configurational entropy of an alloy.
 

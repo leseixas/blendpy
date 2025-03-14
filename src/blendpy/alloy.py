@@ -24,7 +24,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-from warnings import deprecated
+# from warnings import deprecated
 import numpy as np
 from ase.io import read
 from ase.atoms import Atoms
@@ -290,7 +290,7 @@ class Alloy(Atoms):
         return entropy
 
 
-    @deprecated("Use get_ideal_configurational_entropy instead.")    
+    # @deprecated("Use get_ideal_configurational_entropy instead.")    
     def get_binary_configurational_entropy(self, eps: float = 1.e-6,
                                            npoints: int = 101) -> np.ndarray:
         """

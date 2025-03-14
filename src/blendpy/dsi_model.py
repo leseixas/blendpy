@@ -130,31 +130,29 @@ class DSIModel(Alloy):
         The resulting matrix has dimensions n x n, where n is the number of supercells.
         Returns:
             list: A 2D list (matrix) of supercells with diluted alloys.
-        Raises:
-            ValueError: If there are fewer than two supercells provided.
         """
         n = len(self._supercells)
         if n < 2:
-            raise ValueError("Need at least two elements to create an alloy.")
-        
-        dopant = [atoms.get_chemical_symbols()[self.doping_site] for atoms in self._supercells]
-        print("    Dopant atoms:", dopant)
+            return None
+        else:
+            dopant = [atoms.get_chemical_symbols()[self.doping_site] for atoms in self._supercells]
+            print("    Dopant atoms:", dopant)
 
-        list_alloys = []
-        # Iterate over all pairs (i, j)
-        dilute_supercells_matrix = []
-        for i in range(n):
-            dilute_matrix_row = []
-            for j in range(n):
-                # Copy the base supercell from index i.
-                new_atoms = self._supercells[i].copy()
-                new_atoms[self.doping_site].symbol = dopant[j]
-                list_alloys.append(new_atoms.get_chemical_formula())
-                dilute_matrix_row.append(new_atoms)
-            dilute_supercells_matrix.append(dilute_matrix_row)
+            list_alloys = []
+            # Iterate over all pairs (i, j)
+            dilute_supercells_matrix = []
+            for i in range(n):
+                dilute_matrix_row = []
+                for j in range(n):
+                    # Copy the base supercell from index i.
+                    new_atoms = self._supercells[i].copy()
+                    new_atoms[self.doping_site].symbol = dopant[j]
+                    list_alloys.append(new_atoms.get_chemical_formula())
+                    dilute_matrix_row.append(new_atoms)
+                dilute_supercells_matrix.append(dilute_matrix_row)
 
-        print("    Listing dilute alloys:", list_alloys)   # Example: ['Au32', 'Au31Pt1', 'Au1Pt31', 'Pt32']
-        return dilute_supercells_matrix
+            print("    Listing dilute alloys:", list_alloys)   # Example: ['Au32', 'Au31Pt1', 'Au1Pt31', 'Pt32']
+            return dilute_supercells_matrix
 
 
     def optimize(self, method=BFGSLineSearch, fmax: float = 0.01, steps: int = 500, logfile: str = 'optimize.log', mask: list = [1,1,1,1,1,1], verbose: bool = True):

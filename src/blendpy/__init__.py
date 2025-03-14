@@ -76,7 +76,7 @@ ansi_colors = {'black': ["\033[30m", "\033[0m"],
                'invisible': ["\033[8m", "\033[0m"]}
 
 
-def starter(color='red'):
+def starter(color='cyan'):
     color_start, color_end = ansi_colors[color]
     print("                                                  ")
     print(f"{color_start}     _   _           _             {color_end}")

@@ -140,11 +140,6 @@ def test_create_dilute_alloys(setup_data):
     alloy_components, supercell, _, doping_site = setup_data
     model = DSIModel(alloy_components=alloy_components, supercell=supercell, doping_site=doping_site)
     
-    # Test ValueError when there are fewer than two supercells
-    model._supercells = [model._supercells[0]]
-    with pytest.raises(ValueError, match="Need at least two elements to create an alloy."):
-        model._create_dilute_alloys()
-    
     # Reset supercells for further testing
     model._supercells = []
     for filename in alloy_components:

@@ -37,25 +37,28 @@ from .constants import *
 
 
 class DSIModel(Alloy):
-    def __init__(self, alloy_components: list = [], supercell: list = [1,1,1], calculator = None, x0 = None, doping_site: int = 0):
+    def __init__(self, alloy_components: list = [], supercell: list = [1,1,1],
+                 calculator = None, doping_site: int = 0,
+                 x0 = None, energy_matrix = None):
         """
         Initialize the DSI Model.
+
         Parameters:
             alloy_components (list): List of alloy components.
             supercell (list): Dimensions of the supercell. Default is [1, 1, 1].
-            calculator: Calculator object to attach to each Atoms object. Default is None.
-            x0: Minimum dilution factor. Default is 1/n_atoms.
+            calculator: Calculator object for computing energies. Default is None.
             doping_site (int): Index of the doping site. Default is 0.
-
+            x0: Minimum dilution factor. Default is None.
+            energy_matrix: Energy matrix. Default is None.
         Attributes:
-            n_components (int): Number of components in the alloy.
+            n_components (int): Number of alloy components.
             supercell (list): Dimensions of the supercell.
             _supercells (list): List to store the supercell Atoms objects.
             doping_site (int): Index of the doping site.
             _dilute_alloys (list): List of dilute alloy Atoms objects.
-            x_min (float): Minimum dilution factor.
-            _energy_matrix: Matrix to store energy values.
-            _diluting_parameters: Matrix to store diluting parameters.
+            x0 (float): Minimum dilution factor.
+            _energy_matrix: Energy matrix.
+            _diluting_parameters: Matrix of diluting parameters.
         """
 
         print("-----------------------------------------------")
@@ -71,20 +74,24 @@ class DSIModel(Alloy):
         print("    Doping site:", self.doping_site)
         self._create_supercells()                           # Create supercells from the alloy components
         self._dilute_alloys = self._create_dilute_alloys()  # List [Atoms("Au32"), Atoms("Au31Pt1"), Atoms("Au1Pt31"), Atoms("Pt32")]
-        n_atoms = len(self._supercells[0])
+        
+        if len(self._supercells) > 0:
+            n_atoms = len(self._supercells[0])
+        else:
+            n_atoms = 0
         print("    Number of atoms in the supercell:", n_atoms)
-        self.x0 = 1 / n_atoms if x0 is None else x0
-        # Minimun dilution factor
+
+        self.x0 = 1 / n_atoms if x0 is None else x0         # Minimun dilution factor
         print("    Minimum dilution factor:", self.x0)
 
-        # To store energy_matrix and dsi_matrix
-        self._energy_matrix = None
+        # To store energy_matrix
+        self._energy_matrix = energy_matrix
 
         # To store the diluting parameters matrix
         self._diluting_parameters = None                    # M_DSI matrix
 
         # If a calculator is provided, attach it to each Atoms object.
-        if calculator is not None:
+        if calculator is not None and len(self._dilute_alloys) > 0:
             for row in self._dilute_alloys:
                 for atoms in row:
                     atoms.calc = calculator
@@ -271,12 +278,11 @@ class DSIModel(Alloy):
         else:
             if verbose:
                 print("    Calculating energy_matrix...")
-            n  = self.n_components
-            energy_matrix = np.zeros((n,n), dtype=float)
+            energy_matrix = np.zeros((self.n_components, self.n_components), dtype=float)
             for i, row in enumerate(self._dilute_alloys):
                 for j, atoms in enumerate(row):
                     if 'energy' not in atoms.info:
-                        print("WARNING: 'energy' is not in atoms.info. Calculating this now in get_energy_matrix method.")
+                        # print("WARNING: 'energy' is not in atoms.info. Calculating this now in get_energy_matrix method.")
                         atoms.info['energy'] = atoms.get_potential_energy()
                     energy_matrix[i,j] = atoms.info['energy']
             

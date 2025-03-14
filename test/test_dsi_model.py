@@ -31,6 +31,34 @@ def setup_data():
     return alloy_components, supercell, calculator, doping_site
 
 # Tests
+def test_initialization_empty():
+    """
+    Test the initialization of the DSIModel class without any arguments.
+
+    This test verifies that the DSIModel is correctly initialized with default values.
+    It checks the following:
+    
+    - The number of components in the model is set to 0.
+    - The supercell in the model is set to [1, 1, 1].
+    - The doping site in the model is set to 0.
+    - The dilute_alloys attribute is set to None.
+    - The x0 attribute is set to None.
+    - The energy_matrix attribute is set to None.
+    - The diluting_parameters attribute is set to None.
+
+    Args:
+        None
+    """
+    model = DSIModel()
+    assert model.n_components == 0
+    assert model.supercell == [1, 1, 1]
+    assert model.doping_site == 0
+    assert model._dilute_alloys is None
+    assert model.x0 is None
+    assert model._energy_matrix is None
+    assert model._diluting_parameters is None
+
+
 def test_initialization_without_calculator(setup_data):
     """
     Test the initialization of the DSIModel without a calculator.
@@ -562,7 +590,8 @@ def test_get_diluting_parameters_with_precomputed_energy_matrix(setup_data):
     # AuPt (from DFT)
     energy_matrix = np.array([[-85.940400, -89.230299],
                               [-170.278459, -173.891172]])
-    
+
+
     # fictitious
     # energy_matrix = np.array([[-10.0, -9.8],
     #                           [-11.2, -11.0]])

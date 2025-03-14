@@ -81,7 +81,11 @@ class DSIModel(Alloy):
             n_atoms = 0
         print("    Number of atoms in the supercell:", n_atoms)
 
-        self.x0 = 1 / n_atoms if x0 is None else x0         # Minimun dilution factor
+        if x0 is not None:
+                self.x0 = x0
+        else:
+            self.x0 = 1 / n_atoms if n_atoms > 0 else None
+
         print("    Minimum dilution factor:", self.x0)
 
         # To store energy_matrix
@@ -167,12 +171,12 @@ class DSIModel(Alloy):
         Optimize the structure of dilute alloys using the specified optimization method.
 
         Parameters:
-        method (Optimizer): The optimization method to use (default is BFGSLineSearch).
-        fmax (float): The maximum force criteria for convergence in eV/angstrom (default is 0.01).
-        steps (int): The maximum number of optimization steps (default is 500).
-        logfile (str): The name of the logfile to store optimization details (default is 'optimize.log').
-        mask (list): A list of integers specifying which degrees of freedom to optimize (default is [1, 1, 1, 1, 1, 1]).
-        verbose (bool): If True, prints detailed information during optimization (default is True).
+            method (Optimizer): The optimization method to use (default is BFGSLineSearch).
+            fmax (float): The maximum force criteria for convergence in eV/angstrom (default is 0.01).
+            steps (int): The maximum number of optimization steps (default is 500).
+            logfile (str): The name of the logfile to store optimization details (default is 'optimize.log').
+            mask (list): A list of integers specifying which degrees of freedom to optimize (default is [1, 1, 1, 1, 1, 1]).
+            verbose (bool): If True, prints detailed information during optimization (default is True).
 
         Returns:
         None
@@ -228,6 +232,39 @@ class DSIModel(Alloy):
                 optimizer.run(fmax=fmax, steps=steps)
                 if verbose:
                     print(f"    Total energy ({atoms.get_chemical_formula()}) [Relaxed]: {atoms.get_potential_energy()} eV")
+
+
+    def set_x0(self, x0: float):
+        """
+        Set the minimum dilution factor for the model.
+
+        Parameters:
+        -----------
+        x0 : float
+            Minimum dilution factor for the model.
+
+        Raises:
+        -------
+        ValueError
+            If the minimum dilution factor is not a float.
+            If the minimum dilution factor is not between 0 and 1.
+        """
+        if not isinstance(x0, float):
+            raise ValueError("The minimum dilution factor must be a float.")
+        if x0 < 0 or x0 > 1:
+            raise ValueError("The minimum dilution factor must be between 0 and 1.")
+        self.x0 = x0
+
+
+    def get_x0(self):
+        """
+        Retrieve the minimum dilution factor for the model.
+
+        Returns:
+        --------
+        float: The minimum dilution factor.
+        """
+        return self.x0
 
 
     def set_energy_matrix(self, energy_matrix: np.ndarray):

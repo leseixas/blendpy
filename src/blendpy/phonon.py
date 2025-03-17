@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# file: _version.py
+# file: phonon.py
 
 # This code is part of blendpy.
 # MIT License
@@ -24,4 +24,29 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-__version__ = '25.3.45'
+import numpy as np
+from ase import Atoms
+
+class Phonon(Atoms):
+    def __init__(self):
+        super().__init__()
+        self._phonon = None
+    
+    def get_phonon(self):
+        return self._phonon
+
+
+    def get_vibrational_entropy(self):
+        pass
+
+    def get_vibrational_free_energy(self):
+        pass
+
+    def get_vibrational_heat_capacity(self):
+        pass
+
+    def get_vibrational_density_of_states(self):
+        pass
+
+    def get_vibrational_spectra(self):
+        pass

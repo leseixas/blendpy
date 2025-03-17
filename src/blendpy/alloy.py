@@ -289,33 +289,23 @@ class Alloy(Atoms):
         entropy = -R * np.sum( (x+eps) * np.log(x + eps), axis=-1 )
         return entropy
 
+    # TODO: Implement the following methods
+    
+    def get_concentrations(self):
+        pass
 
-    # @deprecated("Use get_ideal_configurational_entropy instead.")    
-    def get_binary_configurational_entropy(self, eps: float = 1.e-6,
-                                           npoints: int = 101) -> np.ndarray:
-        """
-        Calculate the configurational entropy of an alloy.
+    def pair_correlation_function(self):
+        pass
 
-        Parameters:
-        eps (float): A small positive value to avoid division by zero in the logarithm. Default is 1.e-6.
-        npoints (int): The number of points to generate in the linspace. Default is 101.
+    def get_kikuchi_entropy(self):
+        pass
 
-        Returns:
-        np.ndarray: An array containing the configurational entropy values.
+    def get_chemical_short_range_order(self):
+        pass
 
-        Raises:
-        ValueError: If eps is not a float or is less than or equal to zero.
-        ValueError: If npoints is not an integer or is less than or equal to zero.
-        """
-        if isinstance(eps, float) == False:
-            raise ValueError("eps must be a float.")
-        if eps <= 0:
-            raise ValueError("eps must be greater than zero.")
-        if isinstance(npoints, int) == False:
-            raise ValueError("npoints must be an integer.")
-        if npoints <= 0:
-            raise ValueError("npoints must be greater than zero.")
+    def get_chemical_long_range_order(self):
+        pass
 
-        x = np.linspace(0,1,npoints)
-        entropy = - R * ( (1-x-eps)*np.log(1-(x-eps)) + (x+eps)*np.log(x+eps) )
-        return np.array(entropy)
+    def get_chemical_ordering_energy(self):
+        pass
+

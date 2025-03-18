@@ -35,7 +35,12 @@ class LocalOrder(Atoms):
     def __init__(self, atoms: Atoms, mask = None):
         """
         Initialize the LocalOrder class with a given set of atoms.
+
+        Parameters:
+        atoms (Atoms): The atomic structure.
+        mask (optional): To select only a sub-lattice in the atomic structure.
         """
+        super().__init__(atoms)
         self.atoms = atoms
         self.mask = mask                                                    # To select only a sub-lattice in the atomic structure
         self.symbols = self.atoms.get_chemical_symbols()                    # Example: ['Co', 'Co', 'Co', ... ]
@@ -44,25 +49,6 @@ class LocalOrder(Atoms):
         
         if self.N > 0:
             self._concentrations = dict(zip(unique, counts / float(self.N)))    # {'Ni': 0.625, 'Co': 0.25, 'Cr': 0.125}
-
-
-    # def calculate_concentrations(self):
-    #     """
-    #     Calculate the concentrations of each element in the atomic structure.
-    #     """
-    #     elements = Counter(self.atoms.get_chemical_symbols())                              # Example: {'Ni': 20, 'Co': 8, 'Cr': 4}                                                      # Example: 32
-    #     self._concentrations = np.array([count / self.N for count in elements.values()])   # Example: [0.625, 0.25, 0.125]
-
-
-    # def get_concentrations(self):
-    #     """
-    #     Retrieve the concentrations.
-    #     """
-    #     if self._concentrations is not None:
-    #         return self._concentrations
-    #     else:
-    #         self.calculate_concentrations()
-    #         return self._concentrations
 
 
     def configurational_entropy(self):
@@ -106,7 +92,7 @@ class LocalOrder(Atoms):
         s_corr = 0.0
         for pair, count in pair_counts.items():
             p_ij = count / total_pairs
-            prod = self.concentrations[pair[0]] * self.concentrations[pair[1]]      # prod = x_i * x_j
+            prod = self._concentrations[pair[0]] * self._concentrations[pair[1]]      # prod = x_i * x_j
             if prod > 0 and p_ij > 0:
                 s_corr += p_ij * np.log(p_ij / prod)
         
@@ -130,13 +116,63 @@ class LocalOrder(Atoms):
         return S_config - S_corr
 
 
-    def get_chemical_short_range_order(self):
-        pass
+    def warren_cowley_parameter(self, cutoff: float = 5.0):
+        """
+        Calculate the Warren–Cowley short-range order parameter for each ordered pair (i, j).
+        
+        For a given atom of type i, let:
+        
+            P_{ij} = (number of bonds from atoms of type i to neighbors of type j)
+                     / (total bonds from atoms of type i).
+                     
+        The Warren–Cowley parameter is then defined as:
+        
+            alpha_{ij} = 1 - (P_{ij} / X_j)
+            
+        where X_j is the overall concentration of species j.
+        
+        Returns:
+          alpha : dict
+              A dictionary with keys as tuples (i, j) representing an ordered pair
+              (reference atom of type i, neighbor of type j) and values as the corresponding
+              Warren–Cowley parameter.
+        """
+        # Get the neighbor list in 'ijd' mode
+        i_list, j_list, _ = neighbor_list('ijd', self.atoms, self.cutoff)
+        
+        # We need ordered counts: count both (i->j) and (j->i)
+        ordered_counts = {}
+        # Count total neighbors for each reference species
+        total_neighbors = {spec: 0 for spec in self._concentrations.keys()}
+        
+        # For each bond, count both directions.
+        for i, j in zip(i_list, j_list):
+            spec_i = self.symbols[i]
+            spec_j = self.symbols[j]
+            # Count (i -> j)
+            ordered_counts[(spec_i, spec_j)] = ordered_counts.get((spec_i, spec_j), 0) + 1
+            total_neighbors[spec_i] += 1
+            # Count (j -> i)
+            ordered_counts[(spec_j, spec_i)] = ordered_counts.get((spec_j, spec_i), 0) + 1
+            total_neighbors[spec_j] += 1
+        
+        # Calculate the Warren–Cowley parameter for each ordered pair.
+        alpha = {}
+        for (spec_i, spec_j), count in ordered_counts.items():
+            if total_neighbors[spec_i] > 0:
+                P_ij = count / total_neighbors[spec_i]
+                c_j = self._concentrations[spec_j]
+                alpha[(spec_i, spec_j)] = 1 - (P_ij / c_j)
+        return alpha
 
 
-    def get_chemical_long_range_order(self):
-        pass
+    # def get_chemical_short_range_order(self):
+    #     pass
 
 
-    def get_chemical_ordering_energy(self):
-        pass
+    # def get_chemical_long_range_order(self):
+    #     pass
+
+
+    # def get_chemical_ordering_energy(self):
+    #     pass

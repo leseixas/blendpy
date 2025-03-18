@@ -289,23 +289,3 @@ class Alloy(Atoms):
         entropy = -R * np.sum( (x+eps) * np.log(x + eps), axis=-1 )
         return entropy
 
-    # TODO: Implement the following methods
-    
-    def get_concentrations(self):
-        pass
-
-    def pair_correlation_function(self):
-        pass
-
-    def get_kikuchi_entropy(self):
-        pass
-
-    def get_chemical_short_range_order(self):
-        pass
-
-    def get_chemical_long_range_order(self):
-        pass
-
-    def get_chemical_ordering_energy(self):
-        pass
-

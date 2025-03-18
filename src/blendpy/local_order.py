@@ -25,72 +25,118 @@
 # SOFTWARE.
 
 from ase import Atoms
+from ase.neighborlist import neighbor_list
 from collections import Counter
 import numpy as np
+from .constants import R
+
 
 class LocalOrder(Atoms):
-    def __init__(self, atoms: Atoms):
+    def __init__(self, atoms: Atoms, mask = None):
         """
         Initialize the LocalOrder class with a given set of atoms.
-
-        Parameters
-        ----------
-        atoms : Atoms
-            An instance of the Atoms class representing the atomic structure.
         """
-        self._atoms = atoms
-        self._concentrations = None
-        self._pair_correlation_function = None
-
-
-    def calculate_concentrations(self):
-        """
-        Calculate the concentrations of each element in the atomic structure.
-
-        This method counts the occurrences of each chemical symbol in the atomic 
-        structure and calculates their concentrations as the ratio of the count 
-        of each element to the total number of atoms.
-
-        Attributes:
-            _atoms (ase.Atoms): An ASE Atoms object containing the atomic structure.
-            _concentrations (np.ndarray): A numpy array storing the calculated 
-                                          concentrations of each element.
-
-        Returns:
-            None
-        """
-        elements = Counter(self._atoms.get_chemical_symbols())
-        num_atoms = len(self._atoms)
-        self._concentrations = np.array([count / num_atoms for count in elements.values()])
-
-
-    def get_concentrations(self):
-        """
-        Retrieve the concentrations.
-
-        If the concentrations have already been calculated and stored, return them.
-        Otherwise, calculate the concentrations, store them, and then return them.
-
-        Returns:
-            dict: The concentrations.
-        """
-        if self._concentrations is not None:
-            return self._concentrations
-        else:
-            self.calculate_concentrations()
-            return self._concentrations
+        self.atoms = atoms
+        self.mask = mask                                                    # To select only a sub-lattice in the atomic structure
+        self.symbols = self.atoms.get_chemical_symbols()                    # Example: ['Co', 'Co', 'Co', ... ]
+        self.N = len(self.symbols)                                          # Example: 32
+        unique, counts = np.unique(self.symbols, return_counts=True)        # Example: ['Co', 'Cr', 'Ni'], [8, 4, 20]
         
-    def pair_correlation_function(self):
-        pass
+        if self.N > 0:
+            self._concentrations = dict(zip(unique, counts / float(self.N)))    # {'Ni': 0.625, 'Co': 0.25, 'Cr': 0.125}
 
-    def get_kikuchi_entropy(self):
-        pass
+
+    # def calculate_concentrations(self):
+    #     """
+    #     Calculate the concentrations of each element in the atomic structure.
+    #     """
+    #     elements = Counter(self.atoms.get_chemical_symbols())                              # Example: {'Ni': 20, 'Co': 8, 'Cr': 4}                                                      # Example: 32
+    #     self._concentrations = np.array([count / self.N for count in elements.values()])   # Example: [0.625, 0.25, 0.125]
+
+
+    # def get_concentrations(self):
+    #     """
+    #     Retrieve the concentrations.
+    #     """
+    #     if self._concentrations is not None:
+    #         return self._concentrations
+    #     else:
+    #         self.calculate_concentrations()
+    #         return self._concentrations
+
+
+    def configurational_entropy(self):
+        """
+        Calculate the ideal configurational entropy.
+        
+        S_config = - R * sum_i (X_i * ln(X_i))
+        
+        Returns:
+          S_config_total : float
+              The configurational entropy.
+        """
+        s_config = - R * sum(X * np.log(X) for X in self._concentrations.values() if X > 0)
+        return s_config
+
+
+    def nearest_neighbor_correlation(self, cutoff: float = 5.0):
+        """
+        Calculate the nearest-neighbor correlation.
+        
+        Using ASE's neighbor list with the provided cutoff, we first count each unique
+        bond (avoiding double counting by considering only pairs with i < j). Then we
+        compute the correction as:
+        
+          S_corr = R * (total_pairs) * sum_{pairs} p_ij * ln(p_ij / (X_i * X_j))
+          
+        Returns:
+          S_corr_total : float
+              The nearest-neighbor correlation entropy correction.
+        """
+        i_list, j_list, _ = neighbor_list('ijd', self.atoms, cutoff)
+        
+        # Count unique nearest-neighbor pairs
+        pair_counts = {}
+        for i, j in zip(i_list, j_list):
+            if i < j:  # Avoid double counting
+                pair = tuple(sorted([self.symbols[i], self.symbols[j]]))
+                pair_counts[pair] = pair_counts.get(pair, 0) + 1         # Example: {('Co', 'Cr'): 2, ('Co', 'Ni'): 4, ('Cr', 'Ni'): 4}
+        
+        total_pairs = sum(pair_counts.values())
+        s_corr = 0.0
+        for pair, count in pair_counts.items():
+            p_ij = count / total_pairs
+            prod = self.concentrations[pair[0]] * self.concentrations[pair[1]]      # prod = x_i * x_j
+            if prod > 0 and p_ij > 0:
+                s_corr += p_ij * np.log(p_ij / prod)
+        
+        S_corr_total = R * total_pairs * s_corr
+        return S_corr_total
+
+
+    def kikuchi_entropy(self):
+        """
+        Calculate the (total) Kikuchi entropy as the difference between the ideal configurational
+        entropy and the nearest-neighbor correlation entropy.
+        
+        S_total = S_config - S_corr
+        
+        Returns:
+          S_total : float
+              The total Kikuchi entropy.
+        """
+        S_config = self.configurational_entropy()
+        S_corr = self.nearest_neighbor_correlation()
+        return S_config - S_corr
+
 
     def get_chemical_short_range_order(self):
         pass
 
+
     def get_chemical_long_range_order(self):
         pass
+
 
     def get_chemical_ordering_energy(self):
         pass

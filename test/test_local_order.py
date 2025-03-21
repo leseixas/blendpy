@@ -33,6 +33,9 @@ def test_local_order_initialization(setup_atoms):
     
     # Check if the mask is None
     assert local_order.mask is None
+
+    # Check if the symbols are correctly assigned
+    assert list(local_order.symbols) == ['Co', 'Co', 'Cr', 'Ni']
     
     # Check if the number of atoms is correct
     assert local_order.N == len(atoms)

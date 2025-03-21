@@ -32,6 +32,23 @@ from .constants import R
 
 
 class LocalOrder(Atoms):
+    '''
+    LocalOrder class for analyzing local atomic order in a given atomic structure.
+    This class provides methods to calculate various properties related to the local atomic order,
+    such as configurational entropy, nearest-neighbor correlation entropy, Kikuchi entropy, and
+    Warren–Cowley short-range order parameters.
+    Attributes:
+        symbols (list): List of chemical symbols of the atoms.
+        N (int): Number of atoms.
+        _concentrations (dict): Dictionary of atomic concentrations.
+    Methods:
+        configurational_entropy():
+        nearest_neighbor_correlation(cutoff: float = 5.0):
+            Calculate the nearest-neighbor correlation entropy correction.
+        kikuchi_entropy():
+            Calculate the total Kikuchi entropy as the difference between the ideal configurational
+        warren_cowley_parameter(cutoff: float = 5.0):
+    '''
     def __init__(self, atoms: Atoms, mask = None):
         """
         Initialize the LocalOrder class with a given set of atoms.
@@ -65,7 +82,7 @@ class LocalOrder(Atoms):
         return s_config
 
 
-    def nearest_neighbor_correlation(self, cutoff: float = 5.0):
+    def nearest_neighbor_correlation(self, cutoff: float = 3.0):
         """
         Calculate the nearest-neighbor correlation.
         
@@ -96,11 +113,11 @@ class LocalOrder(Atoms):
             if prod > 0 and p_ij > 0:
                 s_corr += p_ij * np.log(p_ij / prod)
         
-        S_corr_total = R * total_pairs * s_corr
+        S_corr_total = R * total_pairs * s_corr # / self.N
         return S_corr_total
 
 
-    def kikuchi_entropy(self):
+    def kikuchi_entropy(self, cutoff: float = 3.0):
         """
         Calculate the (total) Kikuchi entropy as the difference between the ideal configurational
         entropy and the nearest-neighbor correlation entropy.
@@ -112,11 +129,11 @@ class LocalOrder(Atoms):
               The total Kikuchi entropy.
         """
         S_config = self.configurational_entropy()
-        S_corr = self.nearest_neighbor_correlation()
+        S_corr = self.nearest_neighbor_correlation(cutoff=cutoff)
         return S_config - S_corr
 
 
-    def warren_cowley_parameter(self, cutoff: float = 5.0):
+    def warren_cowley_parameter(self, cutoff: float = 3.0):
         """
         Calculate the Warren–Cowley short-range order parameter for each ordered pair (i, j).
         

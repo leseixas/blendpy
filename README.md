@@ -38,7 +38,7 @@ pip install blendpy
 
 This comprehensive tutorial guides you through calculating alloy properties. In this section, you'll learn how to determine key parameters—such as the enthalpy of mixing, and the spinodal and binodal decomposition curves derived from phase diagrams. We start by defining the alloy components, move through geometry optimization, and conclude with advanced modeling techniques using the DSI model.
 
-To start, provide a list of structure files (e.g., CIF or POSCAR) that represent your alloy components. For best accuracy, it is recommended that these files have been pre-optimized using the same calculator and parameters that will be used in the subsequent alloy property calculations.
+To start, provide a list of structure files (*e.g.,* CIF or POSCAR) that represent your alloy components. For best accuracy, it is recommended that these files have been pre-optimized using the same calculator and parameters that will be used in the subsequent alloy property calculations.
 
 If you already have these optimized structures, you may skip ahead to the "[DSI model](#dilute-solution-interpolation-dsi-model)" section. If not, proceed to the "[Geometry Optimization](#geometry-optimization)" section to prepare your structures for analysis.
 
@@ -99,7 +99,7 @@ Import the `DSIModel` from blendpy and create a `DSIModel` object using the opti
 from blendpy import DSIModel
 
 # Create a DSIModel object
-blendpy = DSIModel(alloy_components = ['Au_relaxed.cif', 'Pt_relaxed.cif'],
+dsi_model = DSIModel(alloy_components = ['Au_relaxed.cif', 'Pt_relaxed.cif'],
                    supercell = [2,2,2],
                    calculator = calc_mace)
 ```
@@ -107,13 +107,13 @@ blendpy = DSIModel(alloy_components = ['Au_relaxed.cif', 'Pt_relaxed.cif'],
 Optimize the structures within the `DSIModel` object:
 ```python
 # Optimize the structures
-blendpy.optimize(method=BFGSLineSearch, fmax=0.01, logfile=None)
+dsi_model.optimize(method=BFGSLineSearch, fmax=0.01, logfile=None)
 ```
 
 Calculate the enthalpy of mixing for the AuPt alloy:
 ```python
 # Calculate the enthalpy of mixing
-enthalpy_of_mixing = blendpy.get_enthalpy_of_mixing(npoints=101)
+enthalpy_of_mixing = dsi_model.get_enthalpy_of_mixing(npoints=101)
 x = np.linspace(0, 1, len(enthalpy_of_mixing))
 df_enthalpy = pd.DataFrame({'x': x, 'enthalpy': enthalpy_of_mixing})
 ```
@@ -187,15 +187,15 @@ write("cif_files.Pt.cif", palladium)
 # Create the DSI model
 alloy_components = ['cif_files/Au.cif', 'cif_files/Pt.cif']
 x0 = 1./27
-blendpy= DSIModel(alloy_components=alloy_components, supercell=[3,3,3], x0=x0)
+dsi_model= DSIModel(alloy_components=alloy_components, supercell=[3,3,3], x0=x0)
 
 # Set the energy matrix
 energy_matrix = np.array([[ -85.940400,  -89.230299],
                           [-170.278459, -173.891172]])
 
-blendpy.set_energy_matrix(energy_matrix)
+dsi_model.set_energy_matrix(energy_matrix)
 
-enthalpy= blendpy.get_enthalpy_of_mixing()
+enthalpy= dsi_model.get_enthalpy_of_mixing()
 
 x = np.linspace(0, 1, len(enthalpy))
 

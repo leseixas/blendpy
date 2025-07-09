@@ -5,7 +5,7 @@
 <!-- ![GitHub Downloads (all assets, all releases)](https://img.shields.io/github/downloads/leseixas/blendpy/total?style=for-the-badge&logo=github&label=github&color=blue) -->
 
 
-**Blendpy** is a computational toolkit for investigating thermodynamic models of alloys using first-principles calculations
+**Blendpy** is a computational toolkit for investigating thermodynamic models of alloys using first-principles calculations.
 
 # Table of contents
 

@@ -98,7 +98,7 @@ def starter(color='cyan'):
     print(f"├── {color_start}user:{color_end} {os.environ['USER']}")
     print(f"├── {color_start}hostname:{color_end} {gethostname()}")
     print(f"├── {color_start}cwd:{color_end} {os.getcwd()}")
-    print(f"├── {color_start}date:{color_end} {datetime.today().strftime("%Y-%m-%d, %H:%M:%S")}")
+    print(f"├── {color_start}date:{color_end} {datetime.datetime.now().strftime("%Y-%m-%d, %H:%M:%S")}")
     print(f"└── {color_start}PID:{color_end} {os.getpid()}")
     print("                                               ")
     print("Python:")

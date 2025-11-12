@@ -36,7 +36,7 @@ class LocalOrder(Atoms):
     LocalOrder class for analyzing local atomic order in a given atomic structure.
     This class provides methods to calculate various properties related to the local atomic order,
     such as configurational entropy, nearest-neighbor correlation entropy, Kikuchi entropy, and
-    Warren–Cowley short-range order parameters.
+    Warren-Cowley short-range order parameters.
     Attributes:
         symbols (list): List of chemical symbols of the atoms.
         N (int): Number of atoms.

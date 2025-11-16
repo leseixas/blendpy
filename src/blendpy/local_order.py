@@ -4,7 +4,7 @@
 # This code is part of blendpy.
 # MIT License
 #
-# Copyright (c) 2025 Leandro Seixas Rocha <leandro.fisica@gmail.com> 
+# Copyright (c) 2025 Leandro Seixas Rocha <leandro.seixas@proton.me> 
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -182,14 +182,3 @@ class LocalOrder(Atoms):
                 alpha[(spec_i, spec_j)] = 1 - (P_ij / c_j)
         return alpha
 
-
-    # def get_chemical_short_range_order(self):
-    #     pass
-
-
-    # def get_chemical_long_range_order(self):
-    #     pass
-
-
-    # def get_chemical_ordering_energy(self):
-    #     pass

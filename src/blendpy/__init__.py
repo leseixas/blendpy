@@ -4,7 +4,7 @@
 # This code is part of blendpy.
 # MIT License
 #
-# Copyright (c) 2025 Leandro Seixas Rocha <leandro.fisica@gmail.com> 
+# Copyright (c) 2025 Leandro Seixas Rocha <leandro.seixas@proton.me> 
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -54,12 +54,11 @@ from .constants import R, convert_eVatom_to_kJmol
 from .alloy import Alloy
 from .dsi_model import DSIModel
 from .phase_diagram import PhaseDiagram
-from .local_order import LocalOrder
+# from .local_order import LocalOrder
 # from .ace import ACE
-# from .sqs import SQS
-# from .intermetallics import Intermetallics
 
-__all__ = ['Alloy', 'DSIModel', 'PhaseDiagram', 'LocalOrder']
+
+__all__ = ['Alloy', 'DSIModel', 'PhaseDiagram']
 
 ansi_colors = {'black': ["\033[30m", "\033[0m"],
                'red': ["\033[31m", "\033[0m"],

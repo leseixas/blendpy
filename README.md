@@ -19,9 +19,6 @@
         <!-- - [Pseudo binary alloy](#pseudo-binary-alloy) -->
         - [Ternary alloy](#ternary-alloy)
         - [Phase diagram](#phase-diagram)
-    <!-- - [Cluster expansion](#cluster-expansion) -->
-    <!-- - [Special quasirandom structure (SQS)](#special-quasirandom-structure-sqs) -->
-    <!-- - [Intermetallics](#intermetallics) -->
 - [License](#license)
 - [Acknowledgements](#acknowledgements)
 - [References](#references)
